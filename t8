@@ -34,7 +34,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
     if GradualSpeedEnabled and Humanoid then
         local UserInputService = game:GetService("UserInputService")
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) or UserInputService:IsKeyDown(Enum.KeyCode.ButtonR2) then
-            SpeedAmount = math.clamp(SpeedAmount + SpeedIncreaseRate * 0.1, 16, 100) -- Gradual speed increase
+            SpeedAmount = math.clamp(SpeedAmount + SpeedIncreaseRate * 0.5, 16, 100) -- Gradual speed increase
             Humanoid.WalkSpeed = SpeedAmount
         else
             SpeedAmount = 16 -- Reset to default walk speed
