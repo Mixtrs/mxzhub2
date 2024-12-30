@@ -62,7 +62,7 @@
                     while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
                         humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
                         wait(waitTimer)
-                        waitTimer = waitTimer / 1.1
+                        waitTimer = waitTimer / 2.5
                     end
                     moveDirDB = false
                 elseif humanoid.MoveDirection.magnitude == 0 then
@@ -142,7 +142,7 @@
     MainTab:AddSlider({
         Name = "Acceleration",
         Min = 0,
-        Max = 15,
+        Max = 10,
         Default = accelerationAmount,
         Callback = function(value)
             if accelerationEnabled then
