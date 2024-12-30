@@ -142,7 +142,7 @@
     MainTab:AddSlider({
         Name = "Acceleration",
         Min = 0,
-        Max = 10,
+        Max = 25,
         Default = accelerationAmount,
         Callback = function(value)
             if accelerationEnabled then
@@ -150,31 +150,6 @@
             end
         end
     })
-
-    local function pressKeysSimultaneously(keyCode1, keyCode2)
-        local VirtualInputManager = game:GetService("VirtualInputManager")
-        VirtualInputManager:SendKeyEvent(true, keyCode1, false, game)
-        VirtualInputManager:SendKeyEvent(true, keyCode2, false, game)
-        wait(0.001) -- Adjust the delay as needed
-        VirtualInputManager:SendKeyEvent(false, keyCode1, false, game)
-        VirtualInputManager:SendKeyEvent(false, keyCode2, false, game)
-    end
-
-    local function pressKeysSimultaneously1(keyCode1, keyCode2, keyCode3)
-        local VirtualInputManager = game:GetService("VirtualInputManager")
-
-        -- Press all three keys simultaneously
-        VirtualInputManager:SendKeyEvent(true, keyCode1, false, game)
-        VirtualInputManager:SendKeyEvent(true, keyCode2, false, game)
-        VirtualInputManager:SendKeyEvent(true, keyCode3, false, game)
-
-        wait(0.001) -- Adjust the delay as needed
-
-        -- Release all three keys
-        VirtualInputManager:SendKeyEvent(false, keyCode1, false, game)
-        VirtualInputManager:SendKeyEvent(false, keyCode2, false, game)
-        VirtualInputManager:SendKeyEvent(false, keyCode3, false, game)
-    end
 
     local function checkBehind()
         local player = game.Players.LocalPlayer
@@ -242,9 +217,9 @@
 
         if hand:IsA("BoolValue") then
             if hand.Value then
-                Dribble:FireServer({Enum.KeyCode.Z})
+                Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.C})
             else
-                Dribble:FireServer({Enum.KeyCode.C})
+                Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.Z})
             end
         else
             print("Hand is not a BoolValue")
