@@ -37,6 +37,19 @@
     local humanoid = character:WaitForChild("Humanoid")
     local moveDirConnection
 
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Players = game:GetService("Players")
+    local localPlayer = Players.LocalPlayer
+
+    local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
+    if not Remotes then
+        return
+    end
+
+    local Dribble = Remotes:FindFirstChild("Dribble")
+    if not Dribble then
+        return
+    end
     -- Function to apply acceleration
     local function applyAcceleration()
         if accelerationEnabled then
@@ -163,76 +176,83 @@
         VirtualInputManager:SendKeyEvent(false, keyCode3, false, game)
     end
 
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local Players = game:GetService("Players")
-    local localPlayer = Players.LocalPlayer
-    
-    local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
-    if not Remotes then
-        return
-    end
-    
-    local Dribble = Remotes:FindFirstChild("Dribble")
-    if not Dribble then
-        return
-    end
-    
-    local function checkspin()
-        local playerValues = localPlayer:FindFirstChild("Values")
-        if not playerValues then
+    local function checkBehind()
+        local player = game.Players.LocalPlayer
+        local valuesFolder = player:FindFirstChild("Values")
+
+        if not valuesFolder then
+            print("Values folder not found")
             return
         end
-        
-        local hand = playerValues:FindFirstChild("Hand")
+
+        local hand = valuesFolder:FindFirstChild("Hand")
+
+        if not hand then
+            print("Hand value not found")
+            return
+        end
+
+        if hand:IsA("BoolValue") then
+            if hand.Value then
+                Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X})
+            else
+                Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X})
+            end
+        end
+    end
+
+    local function checkSpin()
+        local player = game.Players.LocalPlayer
+        local valuesFolder = player:FindFirstChild("Values")
+
+        if not valuesFolder then
+            return
+        end
+
+        local hand = valuesFolder:FindFirstChild("Hand")
+
         if not hand then
             return
         end
-    
-        if hand.Value == "L" then
-            Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C})
-        elseif hand.Value == "R" then
-            Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X, Enum.KeyCode.Z})
+
+        if hand:IsA("BoolValue") then
+            if hand.Value then
+                Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X, Enum.KeyCode.Z})
+            else
+                Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C})
+            end
+        else
+            print("Hand is not a BoolValue")
         end
     end
-    
-    local function checksnatchback()
-        local playerValues = localPlayer:FindFirstChild("Values")
-        if not playerValues then
+
+    local function checkSnatch()
+        local player = game.Players.LocalPlayer
+        local valuesFolder = player:FindFirstChild("Values")
+
+        if not valuesFolder then
             return
         end
-        
-        local hand = playerValues:FindFirstChild("Hand")
+
+        local hand = valuesFolder:FindFirstChild("Hand")
+
         if not hand then
             return
         end
-    
-        if hand.Value == "L" then
-            Dribble:FireServer({Enum.KeyCode.X, Enum.KeyCode.C})
-        elseif hand.Value == "R" then
-            Dribble:FireServer({Enum.KeyCode.X, Enum.KeyCode.Z})
-        end
-    end
-    
-    local function checkbehind()
-        local playerValues = localPlayer:FindFirstChild("Values")
-        if not playerValues then
-            return
-        end
-        
-        local hand = playerValues:FindFirstChild("Hand")
-        if not hand then
-            return
-        end
-    
-        if hand.Value == "L" then
-            Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X})
-        elseif hand.Value == "R" then
-            Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X})
+
+        if hand:IsA("BoolValue") then
+            if hand.Value then
+                Dribble:FireServer({Enum.KeyCode.Z})
+            else
+                Dribble:FireServer({Enum.KeyCode.C})
+            end
+        else
+            print("Hand is not a BoolValue")
         end
     end
 
     MainTab:AddBind({
-        Name = "Snatchback",
+        Name = "Momentum",
         Default = Enum.KeyCode.ButtonSelect,
         Callback = function(value)
             checkSnatch()
