@@ -14,12 +14,12 @@ local Window = Rayfield:CreateWindow({
 local MainTab = Window:CreateTab("Main", 4483362458)
 
 local accelerationEnabled = false
-local moveDirConnection = nil
 local baseWaitTimer = 0.1
 local waitTimer = baseWaitTimer
 local accelerationAmount = 1 -- Speed increase per step
 local minSpeed = 16 -- Starting speed
 local maxSpeed = 50 -- Maximum speed
+local moveDirConnection = nil
 
 MainTab:CreateToggle({
     Name = "Enable Acceleration",
@@ -27,7 +27,9 @@ MainTab:CreateToggle({
     Flag = "AccelerationToggle",
     Callback = function(Value)
         accelerationEnabled = Value
-        applyAcceleration()
+        if not accelerationEnabled then
+            resetSpeed()
+        end
     end,
 })
 
@@ -36,35 +38,38 @@ local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local UserInputService = game:GetService("UserInputService")
 
-local function applyAcceleration()
-    if accelerationEnabled then
-        if moveDirConnection then moveDirConnection:Disconnect() end
-        local moveDirDB = false
-
-        local function accelerate()
-            if Humanoid.MoveDirection.magnitude > 0 and not moveDirDB and Humanoid.WalkSpeed < maxSpeed then
-                moveDirDB = true
-                while Humanoid.MoveDirection.magnitude > 0 and Humanoid.WalkSpeed < maxSpeed do
-                    Humanoid.WalkSpeed = Humanoid.WalkSpeed + accelerationAmount
-                    wait(waitTimer)
-                    waitTimer = waitTimer / 1.5
-                end
-                moveDirDB = false
-            elseif Humanoid.MoveDirection.magnitude == 0 then
-                waitTimer = baseWaitTimer
-                Humanoid.WalkSpeed = minSpeed
-            end
-        end
-
-        moveDirConnection = Humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
-    else
-        if moveDirConnection then moveDirConnection:Disconnect() end
-        waitTimer = baseWaitTimer
-        Humanoid.WalkSpeed = minSpeed
+local function resetSpeed()
+    if moveDirConnection then
+        moveDirConnection:Disconnect()
+        moveDirConnection = nil
     end
+    Humanoid.WalkSpeed = minSpeed
+    waitTimer = baseWaitTimer
 end
 
--- Toggle acceleration when Shift or R2 is held
+local function applyAcceleration()
+    if moveDirConnection then moveDirConnection:Disconnect() end
+
+    local moveDirDB = false
+
+    local function accelerate()
+        if Humanoid.MoveDirection.magnitude > 0 and not moveDirDB and Humanoid.WalkSpeed < maxSpeed then
+            moveDirDB = true
+            while Humanoid.MoveDirection.magnitude > 0 and Humanoid.WalkSpeed < maxSpeed do
+                Humanoid.WalkSpeed = Humanoid.WalkSpeed + accelerationAmount
+                wait(waitTimer)
+                waitTimer = waitTimer / 1.5
+            end
+            moveDirDB = false
+        elseif Humanoid.MoveDirection.magnitude == 0 then
+            waitTimer = baseWaitTimer
+            Humanoid.WalkSpeed = minSpeed
+        end
+    end
+
+    moveDirConnection = Humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
+end
+
 game:GetService("RunService").RenderStepped:Connect(function()
     if accelerationEnabled then
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) or UserInputService:IsKeyDown(Enum.KeyCode.ButtonR2) then
@@ -72,11 +77,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
                 applyAcceleration()
             end
         else
-            if moveDirConnection then
-                moveDirConnection:Disconnect()
-                moveDirConnection = nil
-                Humanoid.WalkSpeed = minSpeed
-            end
+            resetSpeed()
         end
     end
 end)
