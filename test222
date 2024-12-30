@@ -1,0 +1,437 @@
+local MXZLIB = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Mixtrs/mxz/main/ui')))()
+local Window = MXZLIB:MakeWindow({Name = "Swerve Hub", HidePremium = false, IntroIcon = "rbxassetid://7733715400", IntroText = "Rivals", SaveConfig = true, ConfigFolder = "MXZTEST"})
+
+-- Main Tabs
+local AimbotTab = Window:MakeTab({
+    Name = "Aimbot",
+    Icon = "rbxassetid://7743872758",
+    PremiumOnly = false
+})
+
+local ESPTab = Window:MakeTab({
+    Name = "Visual",
+    Icon = "rbxassetid://7734068321",
+    PremiumOnly = false
+})
+
+local OtherTab = Window:MakeTab({
+    Name = "Teleport",
+    Icon = "rbxassetid://7734051052",
+    PremiumOnly = false
+})
+
+local SwerveTab = Window:MakeTab({
+    Name = "Exit Swerve",
+    Icon = "rbxassetid://7733992677",
+    PremiumOnly = false
+})
+
+-- Sections
+local AimbotSection = AimbotTab:AddSection({
+    Name = "Aimbot"
+})
+
+local ESPSection = ESPTab:AddSection({
+    Name = "ESP"
+})
+
+local OtherSection = OtherTab:AddSection({
+    Name = "Other"
+})
+
+local SwerveSection = SwerveTab:AddSection({
+    Name = "Swerve"
+})
+
+-- Variables
+local aimbotEnabled = false
+local aimAtPart = "Head"
+local teamCheckEnabled = false
+local headSizeEnabled = false
+local espEnabled = false
+local aiming = false
+local shortestDistance = 25 -- Default shortest distance
+local HighlightESPEnabled = false
+local wallCheckEnabled = false -- Added this variable
+-- FOV Circle Settings
+_G.TeamCheck = false
+_G.CircleSides = 64
+_G.CircleColor = Color3.fromRGB(82, 202, 235)
+_G.CircleTransparency = 0.7
+_G.CircleRadius = 80
+_G.CircleFilled = false
+_G.CircleVisible = true
+_G.CircleThickness = 0
+
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Position = Vector2.new(game:GetService("Workspace").CurrentCamera.ViewportSize.X / 2, game:GetService("Workspace").CurrentCamera.ViewportSize.Y / 2)
+FOVCircle.Radius = _G.CircleRadius
+FOVCircle.Filled = _G.CircleFilled
+FOVCircle.Color = _G.CircleColor
+FOVCircle.Visible = _G.CircleVisible
+FOVCircle.Transparency = _G.CircleTransparency
+FOVCircle.NumSides = _G.CircleSides
+FOVCircle.Thickness = _G.CircleThickness
+
+-- Functions
+
+local ConfigFolder = "MXZTEST"
+local ConfigName = "UserConfig"
+
+local function LoadConfig()
+    local filePath = ConfigFolder .. "/" .. ConfigName .. ".json"
+    if isfile(filePath) then
+        local configContent = readfile(filePath)
+        local configTable = game:GetService("HttpService"):JSONDecode(configContent)
+        print("Configuration loaded!")
+        return configTable
+    else
+        print("Configuration file not found!")
+        return nil
+    end
+end
+
+local function SaveConfig(configTable)
+    local filePath = ConfigFolder .. "/" .. ConfigName .. ".json"
+    local configContent = game:GetService("HttpService"):JSONEncode(configTable)
+    writefile(filePath, configContent)
+    print("Configuration saved!")
+end
+
+local config = LoadConfig() or {}
+
+local connections = {}
+
+local function enableESP()
+    -- Highlight ESP
+    local FillColor = Color3.fromRGB(255, 255, 255)
+    local DepthMode = "AlwaysOnTop"
+    local FillTransparency = 1
+    local OutlineColor = Color3.fromRGB(82, 202, 235)
+    local OutlineTransparency = 0.5
+    local CoreGui = game:GetService("CoreGui")
+    local Players = game:GetService("Players")
+    local lp = Players.LocalPlayer
+    local Storage = Instance.new("Folder")
+    Storage.Parent = CoreGui
+    Storage.Name = "Highlight_Storage"
+
+    local function Highlight(plr)
+        local Highlight = Instance.new("Highlight")
+        Highlight.Name = plr.Name
+        Highlight.FillColor = FillColor
+        Highlight.DepthMode = DepthMode
+        Highlight.FillTransparency = FillTransparency
+        Highlight.OutlineColor = OutlineColor
+        Highlight.OutlineTransparency = OutlineTransparency
+        Highlight.Parent = Storage
+
+        local plrchar = plr.Character
+        if plrchar then
+            Highlight.Adornee = plrchar
+        end
+        connections[plr] = plr.CharacterAdded:Connect(function(char)
+            Highlight.Adornee = char
+        end)
+    end
+
+    Players.PlayerAdded:Connect(Highlight)
+    for _, player in ipairs(Players:GetPlayers()) do
+        Highlight(player)
+    end
+
+    Players.PlayerRemoving:Connect(function(plr)
+        local plrname = plr.Name
+        if Storage:FindFirstChild(plrname) then
+            Storage[plrname]:Destroy()
+        end
+        if connections[plr] then
+            connections[plr]:Disconnect()
+        end
+    end)
+end
+
+local function disableESP()
+    local CoreGui = game:GetService("CoreGui")
+    local Storage = CoreGui:FindFirstChild("Highlight_Storage")
+    if Storage then
+        Storage:Destroy()
+    end
+    for _, connection in pairs(connections) do
+        if connection then
+            connection:Disconnect()
+        end
+    end
+    connections = {}
+end
+
+local function updateFOVCircleVisibility()
+    FOVCircle.Visible = aimbotEnabled
+end
+
+local function isTargetInFOV(targetPosition)
+    local camera = workspace.CurrentCamera
+    local screenPoint, onScreen = camera:WorldToScreenPoint(targetPosition)
+    local distanceFromCenter = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)).Magnitude
+    return onScreen and distanceFromCenter <= FOVCircle.Radius
+end
+
+local function getClosestTarget()
+    local Cam = workspace.CurrentCamera
+    local Players = game:GetService("Players")
+    local localPlayer = Players.LocalPlayer
+    local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+    local localRoot = character:WaitForChild("HumanoidRootPart")
+    local nearestTarget = nil
+    local currentShortestDistance = shortestDistance
+
+    local function checkTarget(target)
+        if target and target:IsA("Model") and target:FindFirstChild("Humanoid") and target:FindFirstChild("HumanoidRootPart") then
+            local targetRoot = target:FindFirstChild("HumanoidRootPart")
+            local distance = (targetRoot.Position - localRoot.Position).Magnitude
+
+            if distance < currentShortestDistance then
+                if wallCheckEnabled then
+                    local rayDirection = (targetRoot.Position - Cam.CFrame.Position).Unit * 1000
+                    local raycastParams = RaycastParams.new()
+                    raycastParams.FilterDescendantsInstances = {character}
+                    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+                    local raycastResult = workspace:Raycast(Cam.CFrame.Position, rayDirection, raycastParams)
+
+                    if raycastResult and raycastResult.Instance:IsDescendantOf(target) and isTargetInFOV(targetRoot.Position) then
+                        currentShortestDistance = distance
+                        nearestTarget = target
+                    end
+                else
+                    if isTargetInFOV(targetRoot.Position) then
+                        currentShortestDistance = distance
+                        nearestTarget = target
+                    end
+                end
+            end
+        end
+    end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer then
+            if _G.TeamCheck == true then
+                if player.Team ~= localPlayer.Team then
+                    checkTarget(player.Character)
+                end
+            else
+                checkTarget(player.Character)
+            end
+        end
+    end
+
+    return nearestTarget
+end
+
+local function lookAt(targetPosition)
+    local Cam = workspace.CurrentCamera
+    if targetPosition then
+        Cam.CFrame = CFrame.new(Cam.CFrame.Position, targetPosition)
+    end
+end
+
+local function lookAt(targetPosition)
+    local Cam = workspace.CurrentCamera
+    if targetPosition then
+        Cam.CFrame = CFrame.new(Cam.CFrame.Position, targetPosition)
+    end
+end
+
+local function aimAtTarget()
+    local runService = game:GetService("RunService")
+    local connection
+    connection = runService.RenderStepped:Connect(function()
+        if not aiming then
+            connection:Disconnect()
+            return
+        end
+
+        local closestTarget = getClosestTarget()
+        if closestTarget and closestTarget:FindFirstChild(aimAtPart) then
+            local targetRoot = closestTarget[aimAtPart]
+
+            while aiming and closestTarget and closestTarget:FindFirstChild(aimAtPart) and closestTarget.Humanoid.Health > 0 do
+                if isTargetInFOV(targetRoot.Position) then
+                    lookAt(targetRoot.Position)
+                end
+                local rayDirection = (targetRoot.Position - workspace.CurrentCamera.CFrame.Position).Unit * 1000
+                local raycastParams = RaycastParams.new()
+                raycastParams.FilterDescendantsInstances = {character}
+                raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+                local raycastResult = workspace:Raycast(workspace.CurrentCamera.CFrame.Position, rayDirection, raycastParams)
+
+                if not raycastResult or not raycastResult.Instance:IsDescendantOf(closestTarget) then
+                    break
+                end
+
+                runService.RenderStepped:Wait()
+            end
+        end
+    end)
+end
+
+local Keybind = Key -- Change this to the desired key
+
+-- UserInputService to check if the key is pressed
+local UserInputService = game:GetService("UserInputService")
+
+
+-- GUI Elements
+AimbotTab:AddToggle({
+    Name = "Aimbot",
+    Save = true,
+    Default = config.aimbotEnabled or false,
+    Callback = function(Value)
+        aimbotEnabled = Value
+        config.aimbotEnabled = Value
+        SaveConfig(config)
+        updateFOVCircleVisibility()  -- Update FOV circle visibility when aimbot state changes
+    end
+})
+
+AimbotTab:AddToggle({
+    Name = "Toggle Circle",
+    Save = true,
+    Default = config.togglecEnabled or false,
+    Callback = function(value)
+        config.togglecEnabled = value
+        SaveConfig(config)
+        if value then
+            FOVCircle.Transparency = 0
+        else
+            FOVCircle.Transparency = _G.CircleTransparency
+        end
+    end
+})
+
+AimbotTab:AddSlider({
+    Name = "Aimbot Distance",
+    Save = true,
+    Min = 25,
+    Max = 1000,
+    Default = config.distanceEnabled or false,
+    Callback = function(Value)
+        shortestDistance = Value
+        config.distanceEnabled = Value
+        SaveConfig(config)
+    end
+})
+
+AimbotTab:AddSlider({
+    Name = "FOV Radius",
+    Min = 40,
+    Max = 500,
+    Default = config.FOVRadius or 80,
+    Increment = 1,
+    Save = true,
+    Callback = function(value)
+        FOVCircle.Radius = value
+        config.FOVRadius = value
+        SaveConfig(config)
+    end
+})
+
+local AimbotTab = AimbotTab:AddSection({
+    Name = "Other"
+})
+
+AimbotTab:AddButton({
+    Name = "Switch Aim Part",
+    Save = true,
+    Callback = function()
+        if aimAtPart == "Head" then
+            aimAtPart = "HumanoidRootPart"
+        else
+            aimAtPart = "Head"
+        end
+        MXZLIB:MakeNotification({
+            Name = "Aim Part",
+            Content = "Now aiming at: " .. aimAtPart,
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end
+})
+
+ESPTab:AddToggle({
+    Name = "Enable ESP",
+    Default = config.espEnabled or false,
+    Save = true,
+    Callback = function(Value)
+        espEnabled = Value
+        config.espEnabled = Value
+        SaveConfig(config)
+        if espEnabled then
+            enableESP()
+        else
+            disableESP()
+        end
+    end
+})
+
+-- Player Dropdown for Teleporting
+local function refreshPlayerList()
+    local playerNames = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        table.insert(playerNames, player.Name)
+    end
+    return playerNames
+end
+
+OtherTab:AddDropdown({
+    Name = "Select Player",
+    Default = "",
+    Options = refreshPlayerList(),
+    Callback = function(selected)
+        selectedPlayerName = selected
+    end
+})
+
+OtherTab:AddButton({
+    Name = "Refresh Player List",
+    Callback = function()
+        TeleportTab:SetOptions(refreshPlayerList())
+    end
+})
+
+OtherTab:AddButton({
+    Name = "Teleport to Selected Player",
+    Callback = function()
+        local targetPlayer = Players:FindFirstChild(selectedPlayerName)
+        teleportToPlayer(targetPlayer)
+    end
+})
+
+
+SwerveTab:AddButton({
+    Name = "Exit Swerve",
+    Callback = function()
+        MXZLIB:Destroy()
+    end
+})
+
+-- Input Detection
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if aimbotEnabled and (input.UserInputType == Enum.UserInputType.MouseButton2 or input.KeyCode == Enum.KeyCode.ButtonL2) then
+        aiming = true
+        aimAtTarget()
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton2 or input.KeyCode == Enum.KeyCode.ButtonL2 then
+        aiming = false
+    end
+end)
+
+SaveConfig(config)
