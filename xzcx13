@@ -10,14 +10,20 @@
     })
 
     local MainTab = Window:MakeTab({
-        Name = "Home",
-        Icon = "rbxassetid://111063248183393",
+        Name = "Main Options",
+        Icon = "rbxassetid://133183679246290",
         PremiumOnly = false
     })
 
-    local SwerveTab = Window:MakeTab({
+    local DribbleTab = Window:MakeTab({
+        Name = "Dribble Moves",
+        Icon = "rbxassetid://98034899786429",
+        PremiumOnly = false
+    })
+
+    local SettingsTab = Window:MakeTab({
         Name = "Settings",
-        Icon = "rbxassetid://6023426927",
+        Icon = "rbxassetid://139512100459860",
         PremiumOnly = false
     })
     
@@ -226,7 +232,7 @@
         end
     end
 
-    MainTab:AddBind({
+    DribbleTab:AddBind({
         Name = "Momentum",
         Default = Enum.KeyCode.ButtonSelect,
         Callback = function(value)
@@ -234,7 +240,7 @@
         end
     })
 
-    MainTab:AddBind({
+    DribbleTab:AddBind({
         Name = "Spin",
         Default = Enum.KeyCode.ButtonSelect,
         Callback = function(value)
@@ -242,7 +248,7 @@
         end
     })
 
-    MainTab:AddBind({
+    DribbleTab:AddBind({
         Name = "Behind The Back",
         Default = Enum.KeyCode.ButtonSelect,
         Hold = false, -- Set to true if you want the function to execute when the key is held down
@@ -251,7 +257,7 @@
         end    
     })
 
-    SwerveTab:AddButton({
+    SettingsTab:AddButton({
         Name = "Exit Swerve",
         Callback = function()
             MXZLIB:Destroy()
