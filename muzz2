@@ -6,6 +6,7 @@
         HidePremium = false,
         SaveConfig = true,
         ConfigFolder = "MXZTest",
+        IntroIcon = "rbxassetid://6023426929"
         IntroText = "RHL"
     })
 
