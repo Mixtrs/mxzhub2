@@ -1,0 +1,266 @@
+    local MXZLIB = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Mixtrs/mxz/main/ui')))()
+
+    -- Create the main window and tabs
+    local Window = MXZLIB:MakeWindow({
+        Name = "DribbleBoyz",
+        HidePremium = false,
+        SaveConfig = true,
+        ConfigFolder = "MXZTest",
+        IntroIcon = "rbxassetid://6023426929"
+        IntroText = "RHL"
+    })
+
+    local MainTab = Window:MakeTab({
+        Name = "Main Options",
+        Icon = "rbxassetid://6023426938",
+        PremiumOnly = false
+    })
+
+    local DribbleTab = Window:MakeTab({
+        Name = "Dribble Moves",
+        Icon = "rbxassetid://6023426929",
+        PremiumOnly = false
+    })
+
+    local SettingsTab = Window:MakeTab({
+        Name = "Settings",
+        Icon = "rbxassetid://6023426927",
+        PremiumOnly = false
+    })
+    
+
+    -- Variables
+    local accelerationEnabled = false
+    local accelerationAmount = 0.01  -- Default acceleration multiplier
+    local baseWaitTimer = 0.01
+    local minSpeed = 16
+    local maxSpeed = 50
+    local waitTimer = baseWaitTimer
+    local fpsUnlockEnabled = false
+    local decalsYeeted = false -- Leaving this on makes games look bad but fps goes up by at least 20.
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local moveDirConnection
+
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Players = game:GetService("Players")
+    local localPlayer = Players.LocalPlayer
+
+    local Remotes = ReplicatedStorage:FindFirstChild("Events")
+    if not Remotes then
+        return
+    end
+
+    local Dribble = Remotes:FindFirstChild("Dribble")
+    if not Dribble then
+        return
+    end
+    -- Function to apply acceleration
+    local function applyAcceleration()
+        if accelerationEnabled then
+            if moveDirConnection then moveDirConnection:Disconnect() end
+            local moveDirDB = false
+
+            local function accelerate()
+                if humanoid.MoveDirection.magnitude > 0 and not moveDirDB and humanoid.WalkSpeed < maxSpeed then
+                    moveDirDB = true
+                    while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
+                        humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
+                        wait(waitTimer)
+                        waitTimer = waitTimer / 2.5
+                    end
+                    moveDirDB = false
+                elseif humanoid.MoveDirection.magnitude == 0 then
+                    waitTimer = baseWaitTimer
+                    humanoid.WalkSpeed = minSpeed
+                end
+            end
+
+            moveDirConnection = humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
+        else
+            if moveDirConnection then moveDirConnection:Disconnect() end
+            waitTimer = baseWaitTimer
+            humanoid.WalkSpeed = minSpeed
+        end
+    end
+
+    -- Function to calculate the distance between two points in 3D space
+    function calculateDistance(point1, point2)
+        return (point1 - point2).Magnitude
+    end
+
+    -- Function to find the closest player
+    function findClosestPlayer()
+        local closestPlayer = nil
+        local closestDistance = math.huge
+
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local myCharacter = game.Players.LocalPlayer.Character
+                local myPosition = myCharacter and myCharacter:FindFirstChild("HumanoidRootPart").Position
+                local opponentPosition = player.Character.HumanoidRootPart.Position
+
+                if myPosition then
+                    local distance = calculateDistance(myPosition, opponentPosition)
+
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestPlayer = player
+                    end
+                end
+            end
+        end
+
+        return closestPlayer
+    end
+
+    -- Add toggles and sliders to the UI
+
+    local toggleValue_Main = false -- Store the initial value of the toggle
+
+    MainTab:AddToggle({
+        Name = "AutoGreen",
+        Default = false,
+        Callback = function(Value)
+            toggleValue_Main = Value -- Update the toggle state based on its value
+            if toggleValue_Main then
+                while toggleValue_Main do
+                    wait()
+                    local meteaa = game.Players.LocalPlayer.Character.HumanoidRootPart.PlayerMeter
+                    if meteaa.Enabled == true then
+                        meteaa.Fill.UIGradient.Offset = Vector2.new(0, -1)
+                    end
+                end
+            end
+        end
+    })
+
+    MainTab:AddToggle({
+        Name = "Enable Acceleration",
+        Default = false,
+        Callback = function(value)
+            accelerationEnabled = value
+            applyAcceleration()
+        end
+    })
+
+    MainTab:AddSlider({
+        Name = "Acceleration",
+        Min = 0,
+        Max = 25,
+        Default = accelerationAmount,
+        Callback = function(value)
+            if accelerationEnabled then
+                accelerationAmount = value
+            end
+        end
+    })
+
+    local function checkBehind()
+        local player = game.Players.LocalPlayer
+        local valuesFolder = player:FindFirstChild("Values")
+
+        if not valuesFolder then
+            print("Values folder not found")
+            return
+        end
+
+        local hand = valuesFolder:FindFirstChild("Hand")
+
+        if not hand then
+            print("Hand value not found")
+            return
+        end
+
+        if hand:IsA("BoolValue") then
+            if hand.Value then
+                Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X})
+            else
+                Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X})
+            end
+        end
+    end
+
+    local function checkSpin()
+        local player = game.Players.LocalPlayer
+        local valuesFolder = player:FindFirstChild("Values")
+
+        if not valuesFolder then
+            return
+        end
+
+        local hand = valuesFolder:FindFirstChild("Hand")
+
+        if not hand then
+            return
+        end
+
+        if hand:IsA("BoolValue") then
+            if hand.Value then
+                Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X, Enum.KeyCode.Z})
+            else
+                Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C})
+            end
+        else
+            print("Hand is not a BoolValue")
+        end
+    end
+
+    local function checkSnatch()
+        local player = game.Players.LocalPlayer
+        local valuesFolder = player:FindFirstChild("Values")
+
+        if not valuesFolder then
+            return
+        end
+
+        local hand = valuesFolder:FindFirstChild("Hand")
+
+        if not hand then
+            return
+        end
+
+        if hand:IsA("BoolValue") then
+            if hand.Value then
+                Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.C})
+            else
+                Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.Z})
+            end
+        else
+            print("Hand is not a BoolValue")
+        end
+    end
+
+    DribbleTab:AddBind({
+        Name = "Momentum",
+        Default = Enum.KeyCode.ButtonSelect,
+        Callback = function(value)
+            checkSnatch()
+        end
+    })
+
+    DribbleTab:AddBind({
+        Name = "Spin",
+        Default = Enum.KeyCode.ButtonSelect,
+        Callback = function(value)
+            checkSpin() 
+        end
+    })
+
+    DribbleTab:AddBind({
+        Name = "Behind The Back",
+        Default = Enum.KeyCode.ButtonSelect,
+        Hold = false, -- Set to true if you want the function to execute when the key is held down
+        Callback = function()
+            checkBehind()
+        end    
+    })
+
+    SettingsTab:AddButton({
+        Name = "Exit Swerve",
+        Callback = function()
+            MXZLIB:Destroy()
+        end
+    })
