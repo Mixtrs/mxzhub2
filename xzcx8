@@ -24,7 +24,7 @@
 
     -- Variables
     local accelerationEnabled = false
-    local accelerationAmount = 0.1  -- Default acceleration multiplier
+    local accelerationAmount = 0.01  -- Default acceleration multiplier
     local baseWaitTimer = 0.01
     local minSpeed = 16
     local maxSpeed = 50
