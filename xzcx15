@@ -11,13 +11,13 @@
 
     local MainTab = Window:MakeTab({
         Name = "Main Options",
-        Icon = "rbxassetid://86422545512924",
+        Icon = "rbxassetid://6023426938",
         PremiumOnly = false
     })
 
     local DribbleTab = Window:MakeTab({
         Name = "Dribble Moves",
-        Icon = "rbxassetid://98034899786429",
+        Icon = "rbxassetid://6023426929",
         PremiumOnly = false
     })
 
