@@ -164,12 +164,13 @@ local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local UserInputService = game:GetService("UserInputService")
 
-game:GetService("RunService").RenderStepped:Connect(function()
+RunService.RenderStepped:Connect(function()
     if accelerationEnabled then
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) or UserInputService:IsKeyDown(Enum.KeyCode.ButtonR2) then
-            if not moveDirConnection then
-                applyAcceleration()
-            end
+        local isShiftDown = UserInputService:IsKeyDown(Enum.KeyCode.LeftShift)
+        local isR2Down = UserInputService:IsKeyDown(Enum.KeyCode.ButtonR2)
+
+        if isShiftDown or isR2Down then
+            applyAcceleration()
         else
             resetSpeed()
         end
@@ -206,7 +207,7 @@ local Toggle = TabMain:CreateToggle({
 
 local Slider = TabMain:CreateSlider({
     Name = "Acceleration",
-    Range = {0, 100},
+    Range = {0, 25},
     Increment = 10,
     Suffix = "Speed",
     CurrentValue = 10,
