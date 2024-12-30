@@ -2,27 +2,25 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "DribbleBoyz",
-    Icon = 0,  -- No icon
+    Icon = 0, -- No icon in Topbar (default)
     LoadingTitle = "Rayfield Interface Suite",
     LoadingSubtitle = "by Sirius",
-    Theme = "AmberGlow",  -- You can customize themes
+    Theme = "AmberGlow", -- Choose a theme
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false, -- Prevents Rayfield from warning about version mismatches
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "MXZTest", -- Custom folder name
+        FolderName = "MXZTest", -- Custom folder for saving the config
         FileName = "Big Hub"
     },
-    KeySystem = false,  -- If you need a key system
-    KeySettings = {
-        Title = "Key System",
-        Subtitle = "Enter your key",
-        Note = "No method of obtaining the key is provided",
-        FileName = "Key",
-        SaveKey = true,
-        Key = {"Hello"}  -- The accepted key for the system
+    KeySystem = false, -- Use key system or not
+    Discord = {
+        Enabled = false, -- Discord invite system disabled
+        Invite = "noinvitelink",
+        RememberJoins = true
     }
 })
 
--- Create tabs
 local MainTab = Window:CreateTab("Main Options", "rbxassetid://6023426938")
 local DribbleTab = Window:CreateTab("Dribble Moves", "rbxassetid://6023426929")
 local SettingsTab = Window:CreateTab("Settings", "rbxassetid://6023426927")
@@ -41,9 +39,11 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local moveDirConnection
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Remotes = ReplicatedStorage:FindFirstChild("Events")
 if not Remotes then return end
+
 local Dribble = Remotes:FindFirstChild("Dribble")
 if not Dribble then return end
 
@@ -106,7 +106,8 @@ function findClosestPlayer()
     return closestPlayer
 end
 
--- Add toggles and sliders to the UI
+-- Add toggles, sliders, and binds to the UI
+
 local toggleValue_Main = false
 
 MainTab:AddToggle({
@@ -147,12 +148,20 @@ MainTab:AddSlider({
     end
 })
 
+-- Dribble binds
 local function checkBehind()
-    local player = game.Players.LocalPlayer
     local valuesFolder = player:FindFirstChild("Values")
-    if not valuesFolder then return end
+
+    if not valuesFolder then
+        return
+    end
+
     local hand = valuesFolder:FindFirstChild("Hand")
-    if not hand then return end
+
+    if not hand then
+        return
+    end
+
     if hand:IsA("BoolValue") then
         if hand.Value then
             Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X})
@@ -163,32 +172,50 @@ local function checkBehind()
 end
 
 local function checkSpin()
-    local player = game.Players.LocalPlayer
     local valuesFolder = player:FindFirstChild("Values")
-    if not valuesFolder then return end
+
+    if not valuesFolder then
+        return
+    end
+
     local hand = valuesFolder:FindFirstChild("Hand")
-    if not hand then return end
+
+    if not hand then
+        return
+    end
+
     if hand:IsA("BoolValue") then
         if hand.Value then
             Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X, Enum.KeyCode.Z})
         else
             Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C})
         end
+    else
+        print("Hand is not a BoolValue")
     end
 end
 
 local function checkSnatch()
-    local player = game.Players.LocalPlayer
     local valuesFolder = player:FindFirstChild("Values")
-    if not valuesFolder then return end
+
+    if not valuesFolder then
+        return
+    end
+
     local hand = valuesFolder:FindFirstChild("Hand")
-    if not hand then return end
+
+    if not hand then
+        return
+    end
+
     if hand:IsA("BoolValue") then
         if hand.Value then
             Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.C})
         else
             Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.Z})
         end
+    else
+        print("Hand is not a BoolValue")
     end
 end
 
@@ -204,7 +231,7 @@ DribbleTab:AddBind({
     Name = "Spin",
     Default = Enum.KeyCode.ButtonSelect,
     Callback = function(value)
-        checkSpin()
+        checkSpin() 
     end
 })
 
@@ -214,12 +241,12 @@ DribbleTab:AddBind({
     Hold = false,
     Callback = function()
         checkBehind()
-    end
+    end    
 })
 
 SettingsTab:AddButton({
     Name = "Exit Swerve",
     Callback = function()
-        Rayfield:Destroy()  -- To destroy the Rayfield window
+        Rayfield:Destroy() -- Close the Rayfield UI
     end
 })
