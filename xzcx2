@@ -1,4 +1,3 @@
-if game.GameId == 2931782391 then
           local MXZLIB = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Mixtrs/mxzlib/main/mxzui')))()
         
         -- Create the main window and tabs
