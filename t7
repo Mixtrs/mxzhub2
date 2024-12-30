@@ -25,19 +25,7 @@ MainTab:CreateToggle({
     end,
 })
 
-MainTab:CreateSlider({
-    Name = "Speed Increase Rate",
-    Range = {1, 10},
-    Increment = 1,
-    Suffix = "Rate",
-    CurrentValue = 3,
-    Flag = "SpeedIncreaseRate",
-    Callback = function(Value)
-        SpeedIncreaseRate = Value
-    end,
-})
-
-local SpeedIncreaseRate = 3 -- Default speed increase rate
+local SpeedIncreaseRate = 25 -- Default speed increase rate
 local Player = game.Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
