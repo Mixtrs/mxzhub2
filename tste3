@@ -1,0 +1,76 @@
+local Window = Rayfield:CreateWindow({
+   Name = "Rayfield Example Window",
+   Icon = 0,
+   LoadingTitle = "Rayfield Interface Suite",
+   LoadingSubtitle = "by Sirius",
+   Theme = "Default",
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false,
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil,
+      FileName = "Big Hub"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "Untitled",
+      Subtitle = "Key System",
+      Note = "No method of obtaining the key is provided",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"Hello"}
+   }
+})
+
+-- Create a tab inside the window
+local Tab = Window:CreateTab("Main", 4483362458)
+
+-- Create a section within the tab
+local Section = Tab:CreateSection("Main Section")
+
+-- Add a button to the section
+Section:CreateButton({
+   Name = "Press Me",
+   Callback = function()
+      print("Button pressed!")
+   end
+})
+
+-- Add a toggle to the section
+Section:CreateToggle({
+   Name = "Enable Feature",
+   Default = false,
+   Callback = function(state)
+      if state then
+         print("Feature enabled!")
+      else
+         print("Feature disabled!")
+      end
+   end
+})
+
+-- Add a slider to the section
+Section:CreateSlider({
+   Name = "Adjust Speed",
+   Min = 1,
+   Max = 100,
+   Default = 50,
+   Callback = function(value)
+      print("Speed set to: " .. value)
+   end
+})
+
+-- Add a text box to the section
+Section:CreateTextBox({
+   Name = "Enter Text",
+   Default = "",
+   Callback = function(input)
+      print("Text entered: " .. input)
+   end
+})
