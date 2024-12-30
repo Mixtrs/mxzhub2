@@ -18,7 +18,7 @@ local Window = Rayfield:CreateWindow({
         Note = "No method of obtaining the key is provided",
         FileName = "Key",
         SaveKey = true,
-        Key = {"Hello"}  -- The accepted key for the system
+        Key = {"Muzz"}  -- The accepted key for the system
     }
 })
 
