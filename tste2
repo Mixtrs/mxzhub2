@@ -1,5 +1,5 @@
 -- Load the Rayfield library
-local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/sirius-menu/Rayfield/main/README.md"))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 -- Create a window with Rayfield
 local Window = Rayfield:CreateWindow({
