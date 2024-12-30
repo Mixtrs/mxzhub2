@@ -29,7 +29,7 @@ local TabSettings = Window:CreateTab("Settings", "rewind")
 
 -- Variables
 local accelerationEnabled = false
-local accelerationAmount = 0.01
+local accelerationAmount = 2
 local baseWaitTimer = 0.01
 local minSpeed = 16
 local maxSpeed = 50
