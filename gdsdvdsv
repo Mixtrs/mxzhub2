@@ -1,0 +1,198 @@
+local MXZLIB = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Mixtrs/mxz/main/ui')))()
+local Window = MXZLIB:MakeWindow({Name = "Swerve Hub", HidePremium = false, IntroIcon = "rbxassetid://7733715400", IntroText = "Rivals", SaveConfig = true, ConfigFolder = "MXZTEST"})
+
+-- Main Tabs
+local AimbotTab = Window:MakeTab({
+    Name = "Aimbot",
+    Icon = "rbxassetid://7743872758",
+    PremiumOnly = false
+})
+
+local ESPTab = Window:MakeTab({
+    Name = "Visual",
+    Icon = "rbxassetid://7734068321",
+    PremiumOnly = false
+})
+
+local SwerveTab = Window:MakeTab({
+    Name = "Exit Swerve",
+    Icon = "rbxassetid://7733992677",
+    PremiumOnly = false
+})
+
+-- Adding Teleport Tab
+local TeleportTab = Window:MakeTab({
+    Name = "Teleport",
+    Icon = "rbxassetid://7743872758", -- Replace with your desired icon asset ID
+    PremiumOnly = false
+})
+
+-- Sections
+local AimbotSection = AimbotTab:AddSection({
+    Name = "Aimbot"
+})
+
+local ESPSection = ESPTab:AddSection({
+    Name = "ESP"
+})
+
+local SwerveSection = SwerveTab:AddSection({
+    Name = "Swerve"
+})
+
+local TeleportSection = TeleportTab:AddSection({
+    Name = "Player Teleport"
+})
+
+-- Variables
+local aimbotEnabled = false
+local aimAtPart = "Head"
+local teamCheckEnabled = false
+local headSizeEnabled = false
+local espEnabled = false
+local aiming = false
+local shortestDistance = 25 -- Default shortest distance
+local HighlightESPEnabled = false
+local wallCheckEnabled = false -- Added this variable
+local selectedPlayer = nil -- For teleport functionality
+local connections = {}
+
+-- FOV Circle Settings
+_G.TeamCheck = false
+_G.CircleSides = 64
+_G.CircleColor = Color3.fromRGB(82, 202, 235)
+_G.CircleTransparency = 0.7
+_G.CircleRadius = 80
+_G.CircleFilled = false
+_G.CircleVisible = true
+_G.CircleThickness = 0
+
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Position = Vector2.new(game:GetService("Workspace").CurrentCamera.ViewportSize.X / 2, game:GetService("Workspace").CurrentCamera.ViewportSize.Y / 2)
+FOVCircle.Radius = _G.CircleRadius
+FOVCircle.Filled = _G.CircleFilled
+FOVCircle.Color = _G.CircleColor
+FOVCircle.Visible = _G.CircleVisible
+FOVCircle.Transparency = _G.CircleTransparency
+FOVCircle.NumSides = _G.CircleSides
+FOVCircle.Thickness = _G.CircleThickness
+
+-- Functions for teleportation
+local function updatePlayerDropdown()
+    local Players = game:GetService("Players")
+    local playerNames = {}
+
+    -- Populate dropdown with player names
+    for _, player in ipairs(Players:GetPlayers()) do
+        table.insert(playerNames, player.Name)
+    end
+
+    TeleportSection:AddDropdown({
+        Name = "Select Player",
+        Options = playerNames,
+        Default = selectedPlayer or "",
+        Callback = function(selected)
+            selectedPlayer = selected
+        end
+    })
+end
+
+local function teleportToPlayer()
+    local Players = game:GetService("Players")
+    local localPlayer = Players.LocalPlayer
+
+    if selectedPlayer then
+        local targetPlayer = Players:FindFirstChild(selectedPlayer)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
+                MXZLIB:MakeNotification({
+                    Name = "Teleport",
+                    Content = "Teleported to " .. selectedPlayer,
+                    Image = "rbxassetid://4483345998",
+                    Time = 5
+                })
+            else
+                MXZLIB:MakeNotification({
+                    Name = "Error",
+                    Content = "You don't have a HumanoidRootPart!",
+                    Image = "rbxassetid://4483345998",
+                    Time = 5
+                })
+            end
+        else
+            MXZLIB:MakeNotification({
+                Name = "Error",
+                Content = selectedPlayer .. " is not valid!",
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
+        end
+    else
+        MXZLIB:MakeNotification({
+            Name = "Teleport",
+            Content = "No player selected!",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end
+end
+
+-- Add Button for teleporting
+TeleportSection:AddButton({
+    Name = "Teleport to Player",
+    Callback = teleportToPlayer
+})
+
+-- Refresh player list when someone joins or leaves
+game:GetService("Players").PlayerAdded:Connect(updatePlayerDropdown)
+game:GetService("Players").PlayerRemoving:Connect(updatePlayerDropdown)
+
+-- Initial setup of the dropdown
+updatePlayerDropdown()
+
+-- Your existing aimbot and ESP code remains unchanged
+-- ESP, Aim Assist, and FOV Circle functionality remains untouched.
+AimbotTab:AddToggle({
+    Name = "Aimbot",
+    Save = true,
+    Default = false,
+    Callback = function(Value)
+        aimbotEnabled = Value
+        updateFOVCircleVisibility() -- Updates FOV circle visibility
+    end
+})
+
+AimbotTab:AddSlider({
+    Name = "FOV Radius",
+    Min = 40,
+    Max = 500,
+    Default = 80,
+    Save = true,
+    Callback = function(value)
+        FOVCircle.Radius = value
+    end
+})
+
+-- Toggle ESP functionality
+ESPTab:AddToggle({
+    Name = "Enable ESP",
+    Default = false,
+    Save = true,
+    Callback = function(Value)
+        espEnabled = Value
+        if espEnabled then
+            enableESP()
+        else
+            disableESP()
+        end
+    end
+})
+
+SwerveTab:AddButton({
+    Name = "Exit Swerve",
+    Callback = function()
+        MXZLIB:Destroy()
+    end
+})
