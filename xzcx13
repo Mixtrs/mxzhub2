@@ -11,7 +11,7 @@
 
     local MainTab = Window:MakeTab({
         Name = "Main Options",
-        Icon = "rbxassetid://133183679246290",
+        Icon = "rbxassetid://86422545512924",
         PremiumOnly = false
     })
 
@@ -23,7 +23,7 @@
 
     local SettingsTab = Window:MakeTab({
         Name = "Settings",
-        Icon = "rbxassetid://139512100459860",
+        Icon = "rbxassetid://6023426927",
         PremiumOnly = false
     })
     
