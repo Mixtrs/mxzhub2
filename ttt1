@@ -159,22 +159,6 @@ local function checkSnatch()
     end
 end
 
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
-RunService.RenderStepped:Connect(function()
-    if accelerationEnabled then
-        local isShiftDown = UserInputService:IsKeyDown(Enum.KeyCode.LeftShift)
-        local isR2Down = UserInputService:IsKeyDown(Enum.KeyCode.ButtonR2)
-
-        if isShiftDown or isR2Down then
-            applyAcceleration()
-        else
-            resetSpeed()
-        end
-    end
-end)
-
 local Toggle = TabMain:CreateToggle({
     Name = "AutoGreen",
     CurrentValue = false,
@@ -205,7 +189,7 @@ local Toggle = TabMain:CreateToggle({
 
 local Slider = TabMain:CreateSlider({
     Name = "Acceleration",
-    Range = {0, 25},
+    Range = {0, 100},
     Increment = 10,
     Suffix = "Speed",
     CurrentValue = 10,
