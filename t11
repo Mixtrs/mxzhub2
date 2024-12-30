@@ -29,7 +29,7 @@ local TabSettings = Window:CreateTab("Settings", "rewind")
 
 -- Variables
 local accelerationEnabled = false
-local accelerationAmount = 2
+local accelerationAmount = 0.1
 local baseWaitTimer = 0.01
 local minSpeed = 16
 local maxSpeed = 50
@@ -58,7 +58,7 @@ local function applyAcceleration()
                 while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
                     humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
                     wait(waitTimer)
-                    waitTimer = waitTimer / 0.5
+                    waitTimer = waitTimer / 0.01
                 end
                 moveDirDB = false
             elseif humanoid.MoveDirection.magnitude == 0 then
