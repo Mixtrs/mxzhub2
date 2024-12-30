@@ -23,7 +23,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- Create tabs
-local Tab = Window:CreateTab("Main", "rewind")
+local Tab1 = Window:CreateTab("Main", "rewind")
 local Tab = Window:CreateTab("Dribble Moves", "rewind")
 local Tab = Window:CreateTab("Settings", "rewind")
 
