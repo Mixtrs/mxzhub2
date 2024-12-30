@@ -1,0 +1,92 @@
+-- Load the Rayfield library
+local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/sirius-menu/Rayfield/main/README.md"))()
+
+-- Create a window with Rayfield
+local Window = Rayfield:CreateWindow({
+    Name = "Rayfield Example",        -- Window name
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "Please Wait...",
+    ConfigurationSaving = {
+        Enabled = true,               -- Enable saving configuration
+        FolderName = "RayfieldExample",  -- Folder to store config
+        FileName = "Config"          -- Config file name
+    },
+    Discord = {
+        Enabled = false,              -- Discord support (optional)
+    },
+    Keybind = Enum.KeyCode.LeftControl, -- Default keybind to open the UI
+    IntroText = "Rayfield UI Example", -- Intro text in the window
+    IntroIcon = "rbxassetid://6023426929"  -- Icon to display on startup
+})
+
+-- Create Tabs
+local MainTab = Window:CreateTab("Main Options", 4483362458)
+local SettingsTab = Window:CreateTab("Settings", 4483362459)
+
+-- Variables for toggles and settings
+local speedEnabled = false
+local speedMultiplier = 1
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- Function to apply speed multiplier
+local function applySpeed()
+    if speedEnabled then
+        character:WaitForChild("Humanoid").WalkSpeed = 16 * speedMultiplier
+    else
+        character:WaitForChild("Humanoid").WalkSpeed = 16
+    end
+end
+
+-- Create Toggle for Speed
+MainTab:CreateToggle({
+    Name = "Enable Speed",
+    Default = false,
+    Callback = function(value)
+        speedEnabled = value
+        applySpeed()
+    end
+})
+
+-- Create Slider for Speed Multiplier
+MainTab:CreateSlider({
+    Name = "Speed Multiplier",
+    Min = 1,
+    Max = 10,
+    Default = 1,
+    Callback = function(value)
+        speedMultiplier = value
+        applySpeed()
+    end
+})
+
+-- Create Keybind for a custom action
+MainTab:CreateKeybind({
+    Name = "Custom Action",
+    CurrentKeybind = "E",  -- Default keybind is E
+    HoldToInteract = false,
+    Flag = "Keybind1",  -- Flag for saving the keybind setting
+    Callback = function(Keybind)
+        -- Action to perform when keybind is pressed
+        print("Custom action triggered with key:", Keybind)
+    end,
+})
+
+-- Create a Button to reset the speed and keybinds
+SettingsTab:CreateButton({
+    Name = "Reset Settings",
+    Callback = function()
+        speedEnabled = false
+        speedMultiplier = 1
+        applySpeed()
+        print("Settings reset to default.")
+    end
+})
+
+-- Function to handle a close button (optional)
+SettingsTab:CreateButton({
+    Name = "Close UI",
+    Callback = function()
+        Rayfield:Destroy()  -- Close the Rayfield window
+    end
+})
