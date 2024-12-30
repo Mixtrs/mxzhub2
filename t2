@@ -5,13 +5,13 @@ local Window = Rayfield:CreateWindow({
     Icon = 0,  -- No icon
     LoadingTitle = "Rayfield Interface Suite",
     LoadingSubtitle = "by Sirius",
-    Theme = "AmberGlow",  -- You can customize themes
+    Theme = "Amethyst",  -- You can customize themes
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "MXZTest", -- Custom folder name
-        FileName = "Big Hub"
+        FolderName = "MXZ", -- Custom folder name
+        FileName = "HUB"
     },
-    KeySystem = false,  -- If you need a key system
+    KeySystem = true,  -- If you need a key system
     KeySettings = {
         Title = "Key System",
         Subtitle = "Enter your key",
