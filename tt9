@@ -159,10 +159,8 @@ local function checkSnatch()
     end
 end
 
-local Player = game.Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 RunService.RenderStepped:Connect(function()
     if accelerationEnabled then
