@@ -178,7 +178,7 @@ local Toggle = TabMain:CreateToggle({
     end,
 })
 
-local Slider = Tab:CreateSlider({
+local Slider = TabMain:CreateSlider({
     Name = "Acceleration",
     Range = {0, 100},
     Increment = 10,
