@@ -1,4 +1,4 @@
-          local MXZLIB = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Mixtrs/mxzlib/main/mxzui')))()
+        local MXZLIB = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Mixtrs/mxzlib/main/mxzui')))()
         
         -- Create the main window and tabs
         local Window = MXZLIB:MakeWindow({
@@ -14,12 +14,6 @@
             Icon = "rbxassetid://4483345998",
             PremiumOnly = false
         })
-
-local LogoTab = Window:MakeTab({
-    Name = "Visual",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
         
         local MiscTab = Window:MakeTab({
             Name = "Misc",
@@ -194,63 +188,6 @@ end
                 end
             end
         })
-
-        local CoreGui = game:GetService("CoreGui")
-
--- Define the logos and their corresponding IDs
-local Logos = {
-    ["Moderator"] = "rbxassetid://15601875770",
-    ["Owner"] = "rbxassetid://15601421875",
-    ["Tiktok"] = "http://www.roblox.com/asset/?id=10332700928",
-    ["Twitch"] = "http://www.roblox.com/asset/?id=10332702352",
-    ["Youtube"] = "http://www.roblox.com/asset/?id=10332704294",
-    ["Vip"] = "rbxassetid://10528026991"
-}
-
--- Function to create a BillboardGui with a logo
-local function createBillboardGui(logoName)
-    local BillboardGui = Instance.new("BillboardGui")
-    BillboardGui.Parent = CoreGui
-    BillboardGui.Adornee = game.Players.LocalPlayer.Character:WaitForChild("Head")
-    BillboardGui.AlwaysOnTop = true
-    BillboardGui.Brightness = 1
-    BillboardGui.DistanceUpperLimit = -1
-    BillboardGui.MaxDistance = 400
-    BillboardGui.Size = UDim2.new(2, 0, 2, 0)
-    BillboardGui.StudsOffset = Vector3.new(0, 2.5, 0)
-    BillboardGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-
-    local ImageLabel = Instance.new("ImageLabel")
-    ImageLabel.Parent = BillboardGui
-    ImageLabel.Image = Logos[logoName]
-    ImageLabel.BackgroundTransparency = 1
-    ImageLabel.Size = UDim2.new(1, 0, 1, 0)
-    ImageLabel.ScaleType = Enum.ScaleType.Crop
-
-    return BillboardGui
-end
-
--- Add toggle options for each logo
-for logoName, _ in pairs(Logos) do
-    LogoTab:AddToggle({
-        Name = logoName,
-        Default = false,
-        Callback = function(state)
-            -- Toggle the BillboardGui visibility based on the state
-            local existingGui = CoreGui:FindFirstChild(logoName)
-            if state then
-                if not existingGui then
-                    local newGui = createBillboardGui(logoName)
-                    newGui.Name = logoName
-                end
-            else
-                if existingGui then
-                    existingGui:Destroy()
-                end
-            end
-        end
-    })
-end
         
         MainTab:AddToggle({
             Name = "Enable Acceleration",
@@ -300,64 +237,6 @@ end
                 checkspin()
             end	
         })  
-    
-        -- FPS Unlocker toggle in MiscTab
-        MiscTab:AddToggle({
-            Name = "FPS Unlock",
-            Default = false,
-            Callback = function(value)
-                fpsUnlockEnabled = value
-                if fpsUnlockEnabled then
-                    -- FPS Unlocker logic
-                    local g = game
-                    local w = g.Workspace
-                    local l = g.Lighting
-                    local t = w.Terrain
-                    t.WaterWaveSize = 0
-                    t.WaterWaveSpeed = 0
-                    t.WaterReflectance = 0
-                    t.WaterTransparency = 0
-                    l.GlobalShadows = false
-                    l.FogEnd = 9e9
-                    l.Brightness = 0
-                    settings().Rendering.QualityLevel = "Level01"
-                    for i, v in pairs(g:GetDescendants()) do
-                        if v:IsA("Part") or v:IsA("Union") or v:IsA("MeshPart") then
-                            v.Material = "Plastic"
-                            v.Reflectance = 0
-                        elseif v:IsA("Decal") and decalsYeeted then 
-                            v.Transparency = 1
-                        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then 
-                            v.Lifetime = NumberRange.new(0)
-                        end
-                    end
-                else
-                    -- FPS Unlocker stop logic (reset to default settings if needed)
-                    local g = game
-                    local w = g.Workspace
-                    local l = g.Lighting
-                    local t = w.Terrain
-                    t.WaterWaveSize = 0.1
-                    t.WaterWaveSpeed = 10
-                    t.WaterReflectance = 1
-                    t.WaterTransparency = 0.3
-                    l.GlobalShadows = true
-                    l.FogEnd = 100000
-                    l.Brightness = 2
-                    settings().Rendering.QualityLevel = "Automatic"
-                    for i, v in pairs(g:GetDescendants()) do
-                        if v:IsA("Part") or v:IsA("Union") or v:IsA("MeshPart") then
-                            v.Material = "Concrete"
-                            v.Reflectance = 0.1
-                        elseif v:IsA("Decal") and decalsYeeted then 
-                            v.Transparency = 0
-                        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then 
-                            v.Lifetime = NumberRange.new(1)
-                        end
-                    end
-                end
-            end
-        })
         
         -- Initialize the Library
         MXZLIB:Init()
