@@ -180,7 +180,7 @@ local Toggle = TabMain:CreateToggle({
 
 local Slider = TabMain:CreateSlider({
     Name = "Acceleration",
-    Range = {0, 25},
+    Range = {0, 100},
     Increment = 1,
     Suffix = "Units", -- Optional: change this to suit your preference
     CurrentValue = accelerationAmount, -- Use the default acceleration amount here
