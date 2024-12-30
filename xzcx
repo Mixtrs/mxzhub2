@@ -1,142 +1,364 @@
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
-local Window = OrionLib:MakeWindow({Name = "Swerve Hub", HidePremium = false, SaveConfig = true, ConfigFolder = "SwerveHub"})
-
--- Tabs
-local AimbotTab = Window:MakeTab({Name = "Aimbot", Icon = "rbxassetid://7743872758", PremiumOnly = false})
-local ESPTab = Window:MakeTab({Name = "ESP", Icon = "rbxassetid://7734068321", PremiumOnly = false})
-local TeleportTab = Window:MakeTab({Name = "Teleport", Icon = "rbxassetid://7743872758", PremiumOnly = false})
-local ExitTab = Window:MakeTab({Name = "Exit", Icon = "rbxassetid://7733992677", PremiumOnly = false})
-
--- Sections
-local AimbotSection = AimbotTab:AddSection({Name = "Aimbot Settings"})
-local ESPSection = ESPTab:AddSection({Name = "ESP Settings"})
-local TeleportSection = TeleportTab:AddSection({Name = "Player Actions"})
-local ExitSection = ExitTab:AddSection({Name = "Exit Swerve Hub"})
-
--- Variables
-local selectedPlayer = nil
-local playersDropdown = nil
-
--- Functions
-local function updatePlayerDropdown()
-    local Players = game:GetService("Players")
-    local playerNames = {}
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        table.insert(playerNames, player.Name)
-    end
-
-    if playersDropdown then
-        playersDropdown:Refresh(playerNames) -- Refresh the dropdown
-    else
-        playersDropdown = TeleportSection:AddDropdown({
-            Name = "Select Player",
-            Options = playerNames,
-            Default = "",
-            Callback = function(value)
-                selectedPlayer = value
-            end
+if game.GameId == 2931782391 then
+          local MXZLIB = loadstring(game:HttpGet(('https://raw.githubusercontent.com/Mixtrs/mxzlib/main/mxzui')))()
+        
+        -- Create the main window and tabs
+        local Window = MXZLIB:MakeWindow({
+            Name = "MXZ HUB",
+            HidePremium = false,
+            SaveConfig = true,
+            ConfigFolder = "MXZTest",
+            IntroText = "Hoops Life"
         })
-    end
-end
+        
+        local MainTab = Window:MakeTab({
+            Name = "Main",
+            Icon = "rbxassetid://4483345998",
+            PremiumOnly = false
+        })
 
-local function teleportToPlayer()
-    local Players = game:GetService("Players")
-    local localPlayer = Players.LocalPlayer
+local LogoTab = Window:MakeTab({
+    Name = "Visual",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+        
+        local MiscTab = Window:MakeTab({
+            Name = "Misc",
+            Icon = "rbxassetid://4483345998",
+            PremiumOnly = false
+        })
+        
+        -- Variables
+        local accelerationEnabled = false
+        local accelerationAmount = 0  -- Default acceleration multiplier
+        local baseWaitTimer = 0.01
+        local minSpeed = 16
+        local maxSpeed = 50
+        local waitTimer = baseWaitTimer
+        local fpsUnlockEnabled = false
+        local decalsYeeted = false -- Leaving this on makes games look bad but fps goes up by at least 20.
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid")
+        local moveDirConnection
+        
+        local LogService = game:GetService("LogService")
+        for i, v in getconnections(LogService.MessageOut) do
+          v:Disable()
+        end
 
-    if selectedPlayer then
-        local targetPlayer = Players:FindFirstChild(selectedPlayer)
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
-            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
-                OrionLib:MakeNotification({
-                    Name = "Teleport Success",
-                    Content = "Teleported to " .. selectedPlayer,
-                    Image = "rbxassetid://4483345998",
-                    Time = 5
-                })
+        -- Function to apply acceleration
+        local function applyAcceleration()
+            if accelerationEnabled then
+                if moveDirConnection then moveDirConnection:Disconnect() end
+                local moveDirDB = false
+                
+                local function accelerate()
+                    if humanoid.MoveDirection.magnitude > 0 and not moveDirDB and humanoid.WalkSpeed < maxSpeed then
+                        moveDirDB = true
+                        while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
+                            humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
+                            wait(waitTimer)
+                            waitTimer = waitTimer / 1.1
+                        end
+                        moveDirDB = false
+                    elseif humanoid.MoveDirection.magnitude == 0 then
+                        waitTimer = baseWaitTimer
+                        humanoid.WalkSpeed = minSpeed
+                    end
+                end
+                
+                moveDirConnection = humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
             else
-                OrionLib:MakeNotification({
-                    Name = "Error",
-                    Content = "Your character does not have a HumanoidRootPart!",
-                    Image = "rbxassetid://4483345998",
-                    Time = 5
-                })
+                if moveDirConnection then moveDirConnection:Disconnect() end
+                waitTimer = baseWaitTimer
+                humanoid.WalkSpeed = minSpeed
             end
-        else
-            OrionLib:MakeNotification({
-                Name = "Error",
-                Content = selectedPlayer .. " is not a valid target!",
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
         end
-    else
-        OrionLib:MakeNotification({
-            Name = "Error",
-            Content = "No player selected!",
-            Image = "rbxassetid://4483345998",
-            Time = 5
-        })
+        
+        -- Function to calculate the distance between two points in 3D space
+        function calculateDistance(point1, point2)
+            return (point1 - point2).Magnitude
+        end
+        
+        -- Function to find the closest player
+        function findClosestPlayer()
+            local closestPlayer = nil
+            local closestDistance = math.huge
+        
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local myCharacter = game.Players.LocalPlayer.Character
+                    local myPosition = myCharacter and myCharacter:FindFirstChild("HumanoidRootPart").Position
+                    local opponentPosition = player.Character.HumanoidRootPart.Position
+        
+                    if myPosition then
+                        local distance = calculateDistance(myPosition, opponentPosition)
+        
+                        if distance < closestDistance then
+                            closestDistance = distance
+                            closestPlayer = player
+                        end
+                    end
+                end
+            end
+        
+            return closestPlayer
+        end
+
+        
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+
+local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
+if not Remotes then
+    return
+end
+
+local Dribble = Remotes:FindFirstChild("Dribble")
+if not Dribble then
+    return
+end
+
+local function checkspin()
+    local playerValues = localPlayer:FindFirstChild("Values")
+    if not playerValues then
+        return
+    end
+    
+    local hand = playerValues:FindFirstChild("Hand")
+    if not hand then
+        return
+    end
+
+    if hand.Value == "L" then
+        Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C})
+    elseif hand.Value == "R" then
+        Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X, Enum.KeyCode.Z})
     end
 end
 
-local function kickPlayer()
-    local Players = game:GetService("Players")
+local function checksnatchback()
+    local playerValues = localPlayer:FindFirstChild("Values")
+    if not playerValues then
+        return
+    end
+    
+    local hand = playerValues:FindFirstChild("Hand")
+    if not hand then
+        return
+    end
 
-    if selectedPlayer then
-        local targetPlayer = Players:FindFirstChild(selectedPlayer)
-        if targetPlayer then
-            targetPlayer:Kick("You have been removed from the game.")
-            OrionLib:MakeNotification({
-                Name = "Kick Success",
-                Content = "Kicked " .. selectedPlayer,
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
-        else
-            OrionLib:MakeNotification({
-                Name = "Error",
-                Content = "Selected player not found!",
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
-        end
-    else
-        OrionLib:MakeNotification({
-            Name = "Error",
-            Content = "No player selected to kick!",
-            Image = "rbxassetid://4483345998",
-            Time = 5
-        })
+    if hand.Value == "L" then
+        Dribble:FireServer({Enum.KeyCode.X, Enum.KeyCode.C})
+    elseif hand.Value == "R" then
+        Dribble:FireServer({Enum.KeyCode.X, Enum.KeyCode.Z})
     end
 end
 
--- UI Elements
-TeleportSection:AddButton({
-    Name = "Teleport to Selected Player",
-    Callback = teleportToPlayer
-})
-
-TeleportSection:AddButton({
-    Name = "Kick Selected Player",
-    Callback = kickPlayer
-})
-
-ExitSection:AddButton({
-    Name = "Exit Swerve Hub",
-    Callback = function()
-        OrionLib:Destroy()
+local function checkbehind()
+    local playerValues = localPlayer:FindFirstChild("Values")
+    if not playerValues then
+        return
     end
-})
+    
+    local hand = playerValues:FindFirstChild("Hand")
+    if not hand then
+        return
+    end
 
--- Refresh player list on join/leave
-game:GetService("Players").PlayerAdded:Connect(updatePlayerDropdown)
-game:GetService("Players").PlayerRemoving:Connect(updatePlayerDropdown)
+    if hand.Value == "L" then
+        Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X})
+    elseif hand.Value == "R" then
+        Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X})
+    end
+end       
+        -- Create elements in the 'Main' tab
+        local toggleValue_Main = false -- Store the initial value of the toggle
+        
+        -- Add toggles and sliders to the UI
+        MainTab:AddToggle({
+            Name = "AutoGreen",
+            Default = false,
+            Callback = function(Value)
+                toggleValue_Main = Value -- Update the toggle state based on its value
+                if toggleValue_Main then
+                    while toggleValue_Main do
+                        wait()
+                        local meteaa = game.Players.LocalPlayer.Character.HumanoidRootPart.PlayerMeter
+                        if meteaa.Enabled == true then
+                            meteaa.Fill.UIGradient.Offset = Vector2.new(0, -1)
+                        end
+                    end
+                end
+            end
+        })
 
--- Initial setup
-updatePlayerDropdown()
+        local CoreGui = game:GetService("CoreGui")
 
--- Load OrionLib GUI
-OrionLib:Init()
+-- Define the logos and their corresponding IDs
+local Logos = {
+    ["Moderator"] = "rbxassetid://15601875770",
+    ["Owner"] = "rbxassetid://15601421875",
+    ["Tiktok"] = "http://www.roblox.com/asset/?id=10332700928",
+    ["Twitch"] = "http://www.roblox.com/asset/?id=10332702352",
+    ["Youtube"] = "http://www.roblox.com/asset/?id=10332704294",
+    ["Vip"] = "rbxassetid://10528026991"
+}
+
+-- Function to create a BillboardGui with a logo
+local function createBillboardGui(logoName)
+    local BillboardGui = Instance.new("BillboardGui")
+    BillboardGui.Parent = CoreGui
+    BillboardGui.Adornee = game.Players.LocalPlayer.Character:WaitForChild("Head")
+    BillboardGui.AlwaysOnTop = true
+    BillboardGui.Brightness = 1
+    BillboardGui.DistanceUpperLimit = -1
+    BillboardGui.MaxDistance = 400
+    BillboardGui.Size = UDim2.new(2, 0, 2, 0)
+    BillboardGui.StudsOffset = Vector3.new(0, 2.5, 0)
+    BillboardGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+    local ImageLabel = Instance.new("ImageLabel")
+    ImageLabel.Parent = BillboardGui
+    ImageLabel.Image = Logos[logoName]
+    ImageLabel.BackgroundTransparency = 1
+    ImageLabel.Size = UDim2.new(1, 0, 1, 0)
+    ImageLabel.ScaleType = Enum.ScaleType.Crop
+
+    return BillboardGui
+end
+
+-- Add toggle options for each logo
+for logoName, _ in pairs(Logos) do
+    LogoTab:AddToggle({
+        Name = logoName,
+        Default = false,
+        Callback = function(state)
+            -- Toggle the BillboardGui visibility based on the state
+            local existingGui = CoreGui:FindFirstChild(logoName)
+            if state then
+                if not existingGui then
+                    local newGui = createBillboardGui(logoName)
+                    newGui.Name = logoName
+                end
+            else
+                if existingGui then
+                    existingGui:Destroy()
+                end
+            end
+        end
+    })
+end
+        
+        MainTab:AddToggle({
+            Name = "Enable Acceleration",
+            Default = false,
+            Callback = function(value)
+                accelerationEnabled = value
+                applyAcceleration()
+            end
+        })
+        
+        MainTab:AddSlider({
+            Name = "Acceleration",
+            Min = 0,
+            Max = 50,
+            Default = accelerationAmount,
+            Callback = function(value)
+                if accelerationEnabled then
+                    accelerationAmount = value
+                end
+            end
+        })
+        
+        MainTab:AddBind({
+            Name = "Snatchback",
+            Default = Enum.KeyCode.ButtonSelect,
+            Hold = false,
+            Callback = function(input)
+                checksnatchback()
+            end	
+        })
+
+        MainTab:AddBind({
+            Name = "Behind The Back",
+            Default = Enum.KeyCode.ButtonSelect,
+            Hold = false,
+            Callback = function(input)
+                checkbehind()
+            end	
+        })
+        
+        -- Bind for Spin Left Hand
+        MainTab:AddBind({
+            Name = "Full Spin",
+            Default = Enum.KeyCode.ButtonSelect,
+            Hold = false,
+            Callback = function(input)
+                checkspin()
+            end	
+        })  
+    
+        -- FPS Unlocker toggle in MiscTab
+        MiscTab:AddToggle({
+            Name = "FPS Unlock",
+            Default = false,
+            Callback = function(value)
+                fpsUnlockEnabled = value
+                if fpsUnlockEnabled then
+                    -- FPS Unlocker logic
+                    local g = game
+                    local w = g.Workspace
+                    local l = g.Lighting
+                    local t = w.Terrain
+                    t.WaterWaveSize = 0
+                    t.WaterWaveSpeed = 0
+                    t.WaterReflectance = 0
+                    t.WaterTransparency = 0
+                    l.GlobalShadows = false
+                    l.FogEnd = 9e9
+                    l.Brightness = 0
+                    settings().Rendering.QualityLevel = "Level01"
+                    for i, v in pairs(g:GetDescendants()) do
+                        if v:IsA("Part") or v:IsA("Union") or v:IsA("MeshPart") then
+                            v.Material = "Plastic"
+                            v.Reflectance = 0
+                        elseif v:IsA("Decal") and decalsYeeted then 
+                            v.Transparency = 1
+                        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then 
+                            v.Lifetime = NumberRange.new(0)
+                        end
+                    end
+                else
+                    -- FPS Unlocker stop logic (reset to default settings if needed)
+                    local g = game
+                    local w = g.Workspace
+                    local l = g.Lighting
+                    local t = w.Terrain
+                    t.WaterWaveSize = 0.1
+                    t.WaterWaveSpeed = 10
+                    t.WaterReflectance = 1
+                    t.WaterTransparency = 0.3
+                    l.GlobalShadows = true
+                    l.FogEnd = 100000
+                    l.Brightness = 2
+                    settings().Rendering.QualityLevel = "Automatic"
+                    for i, v in pairs(g:GetDescendants()) do
+                        if v:IsA("Part") or v:IsA("Union") or v:IsA("MeshPart") then
+                            v.Material = "Concrete"
+                            v.Reflectance = 0.1
+                        elseif v:IsA("Decal") and decalsYeeted then 
+                            v.Transparency = 0
+                        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then 
+                            v.Lifetime = NumberRange.new(1)
+                        end
+                    end
+                end
+            end
+        })
+        
+        -- Initialize the Library
+        MXZLIB:Init()
