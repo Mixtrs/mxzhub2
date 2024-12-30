@@ -46,6 +46,15 @@ if not Remotes then return end
 local Dribble = Remotes:FindFirstChild("Dribble")
 if not Dribble then return end
 
+local function resetSpeed()
+    if moveDirConnection then
+        moveDirConnection:Disconnect()
+        moveDirConnection = nil
+    end
+    Humanoid.WalkSpeed = minSpeed
+    waitTimer = baseWaitTimer
+end
+
 -- Function to apply acceleration
 local function applyAcceleration()
     if accelerationEnabled then
@@ -149,6 +158,23 @@ local function checkSnatch()
         end
     end
 end
+
+local Player = game.Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local UserInputService = game:GetService("UserInputService")
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if accelerationEnabled then
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) or UserInputService:IsKeyDown(Enum.KeyCode.ButtonR2) then
+            if not moveDirConnection then
+                applyAcceleration()
+            end
+        else
+            resetSpeed()
+        end
+    end
+end)
 
 local Toggle = TabMain:CreateToggle({
     Name = "AutoGreen",
