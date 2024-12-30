@@ -2,22 +2,22 @@
 
     -- Create the main window and tabs
     local Window = MXZLIB:MakeWindow({
-        Name = "Swerve Hub",
+        Name = "DribbleBoyz",
         HidePremium = false,
         SaveConfig = true,
         ConfigFolder = "MXZTest",
-        IntroText = "ReaHListic"
+        IntroText = "RHL"
     })
 
     local MainTab = Window:MakeTab({
-        Name = "Main",
-        Icon = "rbxassetid://4483345998",
+        Name = "Home",
+        Icon = "rbxassetid://111063248183393",
         PremiumOnly = false
     })
 
     local SwerveTab = Window:MakeTab({
-        Name = "Exit Swerve",
-        Icon = "rbxassetid://7733992677",
+        Name = "Settings",
+        Icon = "rbxassetid://6023426927",
         PremiumOnly = false
     })
     
