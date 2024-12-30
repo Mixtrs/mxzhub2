@@ -1,0 +1,142 @@
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+local Window = OrionLib:MakeWindow({Name = "Swerve Hub", HidePremium = false, SaveConfig = true, ConfigFolder = "SwerveHub"})
+
+-- Tabs
+local AimbotTab = Window:MakeTab({Name = "Aimbot", Icon = "rbxassetid://7743872758", PremiumOnly = false})
+local ESPTab = Window:MakeTab({Name = "ESP", Icon = "rbxassetid://7734068321", PremiumOnly = false})
+local TeleportTab = Window:MakeTab({Name = "Teleport", Icon = "rbxassetid://7743872758", PremiumOnly = false})
+local ExitTab = Window:MakeTab({Name = "Exit", Icon = "rbxassetid://7733992677", PremiumOnly = false})
+
+-- Sections
+local AimbotSection = AimbotTab:AddSection({Name = "Aimbot Settings"})
+local ESPSection = ESPTab:AddSection({Name = "ESP Settings"})
+local TeleportSection = TeleportTab:AddSection({Name = "Player Actions"})
+local ExitSection = ExitTab:AddSection({Name = "Exit Swerve Hub"})
+
+-- Variables
+local selectedPlayer = nil
+local playersDropdown = nil
+
+-- Functions
+local function updatePlayerDropdown()
+    local Players = game:GetService("Players")
+    local playerNames = {}
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        table.insert(playerNames, player.Name)
+    end
+
+    if playersDropdown then
+        playersDropdown:Refresh(playerNames) -- Refresh the dropdown
+    else
+        playersDropdown = TeleportSection:AddDropdown({
+            Name = "Select Player",
+            Options = playerNames,
+            Default = "",
+            Callback = function(value)
+                selectedPlayer = value
+            end
+        })
+    end
+end
+
+local function teleportToPlayer()
+    local Players = game:GetService("Players")
+    local localPlayer = Players.LocalPlayer
+
+    if selectedPlayer then
+        local targetPlayer = Players:FindFirstChild(selectedPlayer)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
+                OrionLib:MakeNotification({
+                    Name = "Teleport Success",
+                    Content = "Teleported to " .. selectedPlayer,
+                    Image = "rbxassetid://4483345998",
+                    Time = 5
+                })
+            else
+                OrionLib:MakeNotification({
+                    Name = "Error",
+                    Content = "Your character does not have a HumanoidRootPart!",
+                    Image = "rbxassetid://4483345998",
+                    Time = 5
+                })
+            end
+        else
+            OrionLib:MakeNotification({
+                Name = "Error",
+                Content = selectedPlayer .. " is not a valid target!",
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
+        end
+    else
+        OrionLib:MakeNotification({
+            Name = "Error",
+            Content = "No player selected!",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end
+end
+
+local function kickPlayer()
+    local Players = game:GetService("Players")
+
+    if selectedPlayer then
+        local targetPlayer = Players:FindFirstChild(selectedPlayer)
+        if targetPlayer then
+            targetPlayer:Kick("You have been removed from the game.")
+            OrionLib:MakeNotification({
+                Name = "Kick Success",
+                Content = "Kicked " .. selectedPlayer,
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Error",
+                Content = "Selected player not found!",
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
+        end
+    else
+        OrionLib:MakeNotification({
+            Name = "Error",
+            Content = "No player selected to kick!",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end
+end
+
+-- UI Elements
+TeleportSection:AddButton({
+    Name = "Teleport to Selected Player",
+    Callback = teleportToPlayer
+})
+
+TeleportSection:AddButton({
+    Name = "Kick Selected Player",
+    Callback = kickPlayer
+})
+
+ExitSection:AddButton({
+    Name = "Exit Swerve Hub",
+    Callback = function()
+        OrionLib:Destroy()
+    end
+})
+
+-- Refresh player list on join/leave
+game:GetService("Players").PlayerAdded:Connect(updatePlayerDropdown)
+game:GetService("Players").PlayerRemoving:Connect(updatePlayerDropdown)
+
+-- Initial setup
+updatePlayerDropdown()
+
+-- Load OrionLib GUI
+OrionLib:Init()
