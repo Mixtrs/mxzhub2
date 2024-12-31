@@ -1,10 +1,10 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "DribbleBoyz",
+    Name = "RHL",
     Icon = 0,  -- No icon
-    LoadingTitle = "Rayfield Interface Suite",
-    LoadingSubtitle = "by Sirius",
+    LoadingTitle = "RHL",
+    LoadingSubtitle = "by Muzzy",
     Theme = "Serenity",  -- You can customize themes
     ConfigurationSaving = {
         Enabled = true,
