@@ -28,7 +28,7 @@ local TabMain = Window:CreateTab("Main", "rewind")
 -- Variables
 local accelerationEnabled = false
 local accelerationAmount = 0
-local baseWaitTimer = 0.01
+local baseWaitTimer = 0
 local minSpeed = 16
 local maxSpeed = 50
 local waitTimer = baseWaitTimer
