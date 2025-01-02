@@ -28,12 +28,6 @@ local TabDribble = Window:CreateTab("Dribble Moves", "rewind")
 local TabSettings = Window:CreateTab("Settings", "rewind")
 
 -- Variables
-local accelerationEnabled = false
-local accelerationAmount = 0.1
-local baseWaitTimer = 0.01
-local minSpeed = 16
-local maxSpeed = 50
-local waitTimer = baseWaitTimer
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -45,7 +39,67 @@ local Remotes = ReplicatedStorage:FindFirstChild("Events")
 if not Remotes then return end
 local Dribble = Remotes:FindFirstChild("Dribble")
 if not Dribble then return end
+local UserInputService = game:GetService("UserInputService")
+local Player = game.Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local baseWaitTimer = 0.1
+local waitTimer = baseWaitTimer
+local minSpeed = 16
+local maxSpeed = 20
+local accelerationAmount = 0.5
+local accelerationEnabled = false
+local moveDirConnection
+local toggleEnabled = true -- Controlled by the toggle UI
 
+-- Function to apply acceleration
+local function applyAcceleration()
+    if accelerationEnabled and toggleEnabled then
+        if moveDirConnection then moveDirConnection:Disconnect() end
+        local moveDirDB = false
+
+        local function accelerate()
+            if Humanoid and Humanoid.MoveDirection.magnitude > 0 and not moveDirDB and Humanoid.WalkSpeed < maxSpeed then
+                moveDirDB = true
+                while Humanoid and Humanoid.MoveDirection.magnitude > 0 and Humanoid.WalkSpeed < maxSpeed do
+                    Humanoid.WalkSpeed = Humanoid.WalkSpeed + accelerationAmount
+                    wait(waitTimer)
+                    waitTimer = waitTimer / 1.5
+                end
+                moveDirDB = false
+            elseif Humanoid and Humanoid.MoveDirection.magnitude == 0 then
+                waitTimer = baseWaitTimer
+                Humanoid.WalkSpeed = minSpeed
+            end
+        end
+
+        if Humanoid then
+            moveDirConnection = Humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
+        end
+    else
+        if moveDirConnection then moveDirConnection:Disconnect() end
+        waitTimer = baseWaitTimer
+        if Humanoid then
+            Humanoid.WalkSpeed = minSpeed
+        end
+    end
+end
+
+-- Input handling
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if (input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2) and toggleEnabled then
+        accelerationEnabled = true
+        applyAcceleration()
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
+        accelerationEnabled = false
+        applyAcceleration()
+    end
+end)
 
 local function checkBehind()
     local player = game.Players.LocalPlayer
@@ -61,50 +115,6 @@ local function checkBehind()
         end
     end
 end
-
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-
--- Constants
-local normalSpeed = 16
-local boostedSpeed = 20
-local sprintEnabled = true -- Controlled via Rayfield
-
--- Sprint functionality
-local UserInputService = game:GetService("UserInputService")
-local isSprinting = false
-
-local function updateSpeed()
-    if isSprinting and sprintEnabled then
-        humanoid.WalkSpeed = boostedSpeed
-    else
-        humanoid.WalkSpeed = normalSpeed
-    end
-end
-
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if (input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2) and sprintEnabled then
-        isSprinting = true
-        updateSpeed()
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
-        isSprinting = false
-        updateSpeed()
-    end
-end)
-
--- Reset speed on respawn
-player.CharacterAdded:Connect(function(newCharacter)
-    character = newCharacter
-    humanoid = character:WaitForChild("Humanoid")
-    isSprinting = false
-    humanoid.WalkSpeed = normalSpeed -- Ensure normal speed is set on respawn
-end)
 
 local function checkSpin()
     local player = game.Players.LocalPlayer
@@ -158,7 +168,11 @@ local Toggle = TabMain:CreateToggle({
     Name = "Enable Sprint",
     CurrentValue = true,
     Callback = function(value)
-        sprintEnabled = value
+        toggleEnabled = value
+        if not toggleEnabled then
+            accelerationEnabled = false
+            applyAcceleration() -- Reset speed to default when toggled off
+        end
     end,
 })
 
