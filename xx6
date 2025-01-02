@@ -118,7 +118,7 @@ local Toggle = TabMain:CreateToggle({
     end
 })
 
-local Toggle = Tab:CreateToggle({
+local Toggle = TabMain:CreateToggle({
     Name = "Infinite Stamina",
     CurrentValue = false,
     Flag = "InfiniteStamina",
