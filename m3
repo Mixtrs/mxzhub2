@@ -1,10 +1,10 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "RHL",
+    Name = "DribbleBoyz",
     Icon = 0,  -- No icon
-    LoadingTitle = "RHL",
-    LoadingSubtitle = "by Muzzy",
+    LoadingTitle = "Rayfield Interface Suite",
+    LoadingSubtitle = "by Sirius",
     Theme = "Serenity",  -- You can customize themes
     ConfigurationSaving = {
         Enabled = true,
@@ -45,6 +45,15 @@ local Remotes = ReplicatedStorage:FindFirstChild("Events")
 if not Remotes then return end
 local Dribble = Remotes:FindFirstChild("Dribble")
 if not Dribble then return end
+
+local function resetSpeed()
+    if moveDirConnection then
+        moveDirConnection:Disconnect()
+        moveDirConnection = nil
+    end
+    Humanoid.WalkSpeed = minSpeed
+    waitTimer = baseWaitTimer
+end
 
 -- Function to apply acceleration
 local function applyAcceleration()
@@ -166,6 +175,30 @@ local Toggle = TabMain:CreateToggle({
             end
         end
     end
+})
+
+local Toggle = TabMain:CreateToggle({
+    Name = "Enable Acceleration",
+    CurrentValue = false,
+    Flag = "EnableAcceleration", -- Unique flag for configuration saving
+    Callback = function(Value)
+        accelerationEnabled = Value
+        applyAcceleration()
+    end,
+})
+
+local Slider = TabMain:CreateSlider({
+    Name = "Acceleration",
+    Range = {0, 100},
+    Increment = 10,
+    Suffix = "Speed",
+    CurrentValue = 10,
+    Flag = "AccelerationSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Value)
+        if accelerationEnabled then
+            accelerationAmount = Value
+        end
+    end,
 })
 
 local Keybind = TabDribble:CreateKeybind({
