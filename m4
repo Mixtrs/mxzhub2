@@ -46,73 +46,6 @@ if not Remotes then return end
 local Dribble = Remotes:FindFirstChild("Dribble")
 if not Dribble then return end
 
-local function resetSpeed()
-    if moveDirConnection then
-        moveDirConnection:Disconnect()
-        moveDirConnection = nil
-    end
-    Humanoid.WalkSpeed = minSpeed
-    waitTimer = baseWaitTimer
-end
-
--- Function to apply acceleration
-local function applyAcceleration()
-    if accelerationEnabled then
-        if moveDirConnection then moveDirConnection:Disconnect() end
-        local moveDirDB = false
-
-        local function accelerate()
-            if humanoid.MoveDirection.magnitude > 0 and not moveDirDB and humanoid.WalkSpeed < maxSpeed then
-                moveDirDB = true
-                while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
-                    humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
-                    wait(waitTimer)
-                    waitTimer = waitTimer / 1.5
-                end
-                moveDirDB = false
-            elseif humanoid.MoveDirection.magnitude == 0 then
-                waitTimer = baseWaitTimer
-                humanoid.WalkSpeed = minSpeed
-            end
-        end
-
-        moveDirConnection = humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
-    else
-        if moveDirConnection then moveDirConnection:Disconnect() end
-        waitTimer = baseWaitTimer
-        humanoid.WalkSpeed = minSpeed
-    end
-end
-
--- Function to calculate the distance between two points in 3D space
-function calculateDistance(point1, point2)
-    return (point1 - point2).Magnitude
-end
-
--- Function to find the closest player
-function findClosestPlayer()
-    local closestPlayer = nil
-    local closestDistance = math.huge
-
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local myCharacter = game.Players.LocalPlayer.Character
-            local myPosition = myCharacter and myCharacter:FindFirstChild("HumanoidRootPart").Position
-            local opponentPosition = player.Character.HumanoidRootPart.Position
-
-            if myPosition then
-                local distance = calculateDistance(myPosition, opponentPosition)
-
-                if distance < closestDistance then
-                    closestDistance = distance
-                    closestPlayer = player
-                end
-            end
-        end
-    end
-
-    return closestPlayer
-end
 
 local function checkBehind()
     local player = game.Players.LocalPlayer
@@ -128,6 +61,52 @@ local function checkBehind()
         end
     end
 end
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Constants
+local normalSpeed = 16
+local boostedSpeed = 20
+local sprintEnabled = true -- Controlled via Rayfield
+
+
+-- Sprint functionality
+local UserInputService = game:GetService("UserInputService")
+local isSprinting = false
+
+local function updateSpeed()
+    if isSprinting and sprintEnabled then
+        humanoid.WalkSpeed = boostedSpeed
+    else
+        humanoid.WalkSpeed = normalSpeed
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
+        isSprinting = true
+        updateSpeed()
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
+        isSprinting = false
+        updateSpeed()
+    end
+end)
+
+-- Reset speed on respawn
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    isSprinting = false
+    updateSpeed()
+end)
+
 
 local function checkSpin()
     local player = game.Players.LocalPlayer
@@ -178,26 +157,10 @@ local Toggle = TabMain:CreateToggle({
 })
 
 local Toggle = TabMain:CreateToggle({
-    Name = "Enable Acceleration",
-    CurrentValue = false,
-    Flag = "EnableAcceleration", -- Unique flag for configuration saving
-    Callback = function(Value)
-        accelerationEnabled = Value
-        applyAcceleration()
-    end,
-})
-
-local Slider = TabMain:CreateSlider({
-    Name = "Acceleration",
-    Range = {0, 100},
-    Increment = 10,
-    Suffix = "Speed",
-    CurrentValue = 10,
-    Flag = "AccelerationSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(Value)
-        if accelerationEnabled then
-            accelerationAmount = Value
-        end
+    Name = "Enable Sprint",
+    CurrentValue = true,
+    Callback = function(value)
+        sprintEnabled = value
     end,
 })
 
