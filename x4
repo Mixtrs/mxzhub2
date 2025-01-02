@@ -33,39 +33,42 @@ local minSpeed = 16
 local maxSpeed = 50
 local waitTimer = baseWaitTimer
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
-local moveDirConnection
 
--- Function to apply acceleration
-local function applyAcceleration()
-    if accelerationEnabled then
-        if moveDirConnection then moveDirConnection:Disconnect() end
-        local moveDirDB = false
+-- Function to handle acceleration on key/button press
+local function enableAcceleration()
+    humanoid.WalkSpeed = math.min(humanoid.WalkSpeed + accelerationAmount, maxSpeed)
+end
 
-        local function accelerate()
-            if humanoid.MoveDirection.magnitude > 0 and not moveDirDB and humanoid.WalkSpeed < maxSpeed then
-                moveDirDB = true
-                while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
-                    humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
-                    wait(waitTimer)
-                    waitTimer = waitTimer / 5.0
-                end
-                moveDirDB = false
-            elseif humanoid.MoveDirection.magnitude == 0 then
-                waitTimer = baseWaitTimer
-                humanoid.WalkSpeed = minSpeed
+-- Function to reset speed
+local function resetSpeed()
+    humanoid.WalkSpeed = minSpeed
+end
+
+-- Function to connect input handlers
+local function setupInputHandlers()
+    UserInputService.InputBegan:Connect(function(input, isProcessed)
+        if not isProcessed and accelerationEnabled then
+            if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonR2 then
+                enableAcceleration()
             end
         end
+    end)
 
-        moveDirConnection = humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
-    else
-        if moveDirConnection then moveDirConnection:Disconnect() end
-        waitTimer = baseWaitTimer
-        humanoid.WalkSpeed = minSpeed
-    end
+    UserInputService.InputEnded:Connect(function(input, isProcessed)
+        if not isProcessed and accelerationEnabled then
+            if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonR2 then
+                resetSpeed()
+            end
+        end
+    end)
 end
+
+-- Initialize input handlers
+setupInputHandlers()
 
 local Toggle = TabMain:CreateToggle({
     Name = "Enable Acceleration",
@@ -73,7 +76,9 @@ local Toggle = TabMain:CreateToggle({
     Flag = "Toggle2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(value)
         accelerationEnabled = value
-        applyAcceleration()
+        if not value then
+            resetSpeed() -- Ensure speed resets when the toggle is turned off
+        end
     end
 })
 
@@ -85,16 +90,13 @@ local Slider = TabMain:CreateSlider({
     CurrentValue = accelerationAmount, -- Use the default acceleration amount here
     Flag = "AccelerationSlider", -- Ensure this is unique if saving configuration
     Callback = function(value)
-        if accelerationEnabled then
-            accelerationAmount = value
-        end
+        accelerationAmount = value
     end,
 })
 
-local Button = TabSettings:CreateButton({
+local Button = TabMain:CreateButton({
     Name = "Exit Hub",
     Callback = function()
         Rayfield:Destroy()  -- To destroy the Rayfield window
     end
 })
-
