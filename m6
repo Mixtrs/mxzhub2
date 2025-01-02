@@ -68,9 +68,8 @@ local humanoid = character:WaitForChild("Humanoid")
 
 -- Constants
 local normalSpeed = 16
-local boostedSpeed = 50
+local boostedSpeed = 20
 local sprintEnabled = true -- Controlled via Rayfield
-
 
 -- Sprint functionality
 local UserInputService = game:GetService("UserInputService")
@@ -86,7 +85,7 @@ end
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
+    if (input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2) and sprintEnabled then
         isSprinting = true
         updateSpeed()
     end
@@ -104,9 +103,8 @@ player.CharacterAdded:Connect(function(newCharacter)
     character = newCharacter
     humanoid = character:WaitForChild("Humanoid")
     isSprinting = false
-    updateSpeed()
+    humanoid.WalkSpeed = normalSpeed -- Ensure normal speed is set on respawn
 end)
-
 
 local function checkSpin()
     local player = game.Players.LocalPlayer
