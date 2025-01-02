@@ -27,10 +27,10 @@ local TabMain = Window:CreateTab("Main", "rewind")
 
 -- Variables
 local accelerationEnabled = false
-local accelerationAmount = 0
+local accelerationAmount = 100
 local baseWaitTimer = 0
 local minSpeed = 16
-local maxSpeed = 50
+local maxSpeed = 100
 local waitTimer = baseWaitTimer
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -77,21 +77,7 @@ local Toggle = TabMain:CreateToggle({
     end
 })
 
-local Slider = TabMain:CreateSlider({
-    Name = "Acceleration",
-    Range = {0, 100},
-    Increment = 1,
-    Suffix = "Units", -- Optional: change this to suit your preference
-    CurrentValue = accelerationAmount, -- Use the default acceleration amount here
-    Flag = "AccelerationSlider", -- Ensure this is unique if saving configuration
-    Callback = function(value)
-        if accelerationEnabled then
-            accelerationAmount = value
-        end
-    end,
-})
-
-local Button = TabSettings:CreateButton({
+local Button = TabMain:CreateButton({
     Name = "Exit Hub",
     Callback = function()
         Rayfield:Destroy()  -- To destroy the Rayfield window
