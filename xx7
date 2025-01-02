@@ -3,12 +3,12 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "DribbleBoyz",
     Icon = 0,  -- No icon
-    LoadingTitle = "Rayfield Interface Suite",
-    LoadingSubtitle = "by Sirius",
-    Theme = "Serenity",  -- You can customize themes
+    LoadingTitle = "Hoop Hub",
+    LoadingSubtitle = "by Muzzy",
+    Theme = "Ocean",  -- You can customize themes
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "MXZ", -- Custom folder name
+        FolderName = "MUZZY", -- Custom folder name
         FileName = "HUB"
     },
     KeySystem = true,  -- If you need a key system
