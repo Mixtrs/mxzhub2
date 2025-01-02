@@ -50,7 +50,7 @@ local function applyAcceleration()
                 while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
                     humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
                     wait(waitTimer)
-                    waitTimer = waitTimer / 0.5
+                    waitTimer = waitTimer / 5.0
                 end
                 moveDirDB = false
             elseif humanoid.MoveDirection.magnitude == 0 then
