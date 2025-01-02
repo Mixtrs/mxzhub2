@@ -47,14 +47,14 @@ local function applyAcceleration()
         local function accelerate()
             if humanoid.MoveDirection.magnitude > 0 and not moveDirDB and humanoid.WalkSpeed < maxSpeed then
                 moveDirDB = true
+                -- Start accelerating immediately using deltaTime for smoothness
                 while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
-                    humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
-                    wait(waitTimer)
-                    waitTimer = waitTimer / 1.0
+                    local deltaTime = task.wait()  -- Get the time elapsed since the last frame
+                    humanoid.WalkSpeed = humanoid.WalkSpeed + (accelerationAmount * deltaTime)
                 end
                 moveDirDB = false
             elseif humanoid.MoveDirection.magnitude == 0 then
-                waitTimer = baseWaitTimer
+                -- Reset WalkSpeed if no movement
                 humanoid.WalkSpeed = minSpeed
             end
         end
@@ -62,10 +62,10 @@ local function applyAcceleration()
         moveDirConnection = humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
     else
         if moveDirConnection then moveDirConnection:Disconnect() end
-        waitTimer = baseWaitTimer
         humanoid.WalkSpeed = minSpeed
     end
 end
+
 
 local Toggle = TabMain:CreateToggle({
     Name = "Enable Acceleration",
