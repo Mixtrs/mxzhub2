@@ -47,10 +47,11 @@ local function applyAcceleration()
         local function accelerate()
             if humanoid.MoveDirection.magnitude > 0 and not moveDirDB and humanoid.WalkSpeed < maxSpeed then
                 moveDirDB = true
-                -- Start accelerating immediately using deltaTime for smoothness
+                -- Start increasing WalkSpeed immediately
                 while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
-                    local deltaTime = task.wait()  -- Get the time elapsed since the last frame
-                    humanoid.WalkSpeed = humanoid.WalkSpeed + (accelerationAmount * deltaTime)
+                    humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
+                    -- Use RunService.Heartbeat to update the WalkSpeed smoothly every frame
+                    game:GetService("RunService").Heartbeat:Wait()
                 end
                 moveDirDB = false
             elseif humanoid.MoveDirection.magnitude == 0 then
