@@ -5,7 +5,7 @@ local Window = Rayfield:CreateWindow({
     Icon = 0,  -- No icon
     LoadingTitle = "Hoop Hub",
     LoadingSubtitle = "by Muzzy",
-    Theme = "Ocean",  -- You can customize themes
+    Theme = "Bloom",  -- You can customize themes
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "MUZZY", -- Custom folder name
@@ -23,9 +23,9 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- Create tabs
-local TabMain = Window:CreateTab("Main", "rewind")
-local TabDribble = Window:CreateTab("Dribble Moves", "rewind")
-local TabSettings = Window:CreateTab("Settings", "rewind")
+local TabMain = Window:CreateTab("Main", "home")
+local TabDribble = Window:CreateTab("Dribble Moves", "star")
+local TabSettings = Window:CreateTab("Settings", "settings-2")
 
 -- Variables
 local Players = game:GetService("Players")
@@ -101,7 +101,7 @@ spawn(function()
 end)
 
 local Toggle = TabMain:CreateToggle({
-    Name = "AutoGreen",
+    Name = "Auto Green",
     CurrentValue = false,
     Flag = "AutoGreen", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Value)
