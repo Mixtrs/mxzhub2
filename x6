@@ -37,10 +37,7 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local moveDirConnection
--- Function to reset speed
-local function resetSpeed()
-    humanoid.WalkSpeed = minSpeed
-end
+
 -- Function to apply acceleration
 local function applyAcceleration()
     if accelerationEnabled then
@@ -70,22 +67,6 @@ local function applyAcceleration()
     end
 end
 
-UserInputService.InputBegan:Connect(function(input, isProcessed)
-    if not isProcessed and accelerationEnabled then
-        if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonR2 then
-            enableAcceleration()
-        end
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input, isProcessed)
-    if not isProcessed and accelerationEnabled then
-        if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonR2 then
-            resetSpeed()
-        end
-    end
-end)
-
 local Toggle = TabMain:CreateToggle({
     Name = "Enable Acceleration",
     CurrentValue = false,
@@ -93,9 +74,6 @@ local Toggle = TabMain:CreateToggle({
     Callback = function(value)
         accelerationEnabled = value
         applyAcceleration()
-        if not value then
-            resetSpeed() -- Ensure speed resets when the toggle is turned off
-        end
     end
 })
 
