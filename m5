@@ -68,7 +68,7 @@ local humanoid = character:WaitForChild("Humanoid")
 
 -- Constants
 local normalSpeed = 16
-local boostedSpeed = 20
+local boostedSpeed = 50
 local sprintEnabled = true -- Controlled via Rayfield
 
 
